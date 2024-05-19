@@ -1,0 +1,125 @@
+Yet Another Glue Script (YAGS) - 不只是有大括号的Python
+
+== 特点 ==
+
+* 利用大括号而非缩进来表示层次。当然，规范地使用缩进以高代码的可读性仍然是建议的做法。
+* 具有和JavaScript或者说ECMAScript接近的语法。熟悉js的开发者可以很快上手，而其他C系语言的使用者在理解上没有太多困难。
+* 在Python环境中运行并且具有良好的互操作性。可以使用Python中现有的模块（例如NumPy）。
+
+== 进行中的事项 ==
+
+请关注有关解构赋值和函数参数的[[https://github.com/Frimaire/yags-lang/issues/1|相关讨论]]，这将帮助我引入这些特性。
+
+== 代码示例 ==
+
+=== 你好世界 ===
+
+<source lang='javascript'>
+print('Hello World!');
+</source>
+
+=== 复数字面量 ===
+
+<source lang='javascript'>
+print((1 - 1j) ** 2 + 2i);
+</source>
+
+=== 展开语法 ===
+
+预期输出: 0 1 2 3 4 5 6 7 8 9 10 100 1000 10000
+
+<source lang='javascript'>
+print(0, ...[1, ...range(2, 10), 10, ...[100, 1000]], 10000);
+</source>
+
+=== 三元条件运算符 ===
+
+计算3n+1问题中到达1所需要的步数。（OEIS [https://oeis.org/A006577 A006577]）
+
+<source lang='javascript'>
+function collatz(n) {
+    return n == 1 ? 0 : collatz(n % 2 == 1 ? 3 * n + 1 : n / 2) + 1;
+}
+print(collatz(27)); // 111
+</source>
+
+=== 闭包 ===
+
+预期输出: 1 5 14 30 55 91 140 204 285 385
+
+<source lang='javascript'>
+function gen(s) {
+    var n = 1;
+    return function() {
+        s += n ** 2;
+        n++;
+        return s;
+    };
+}
+
+var f = gen(0);
+var k = 0;
+while(k++ < 10) {
+    print(f());
+}
+</source>
+
+=== 引入 ===
+
+利用[https://docs.scipy.org/doc/scipy/tutorial/integrate.html scipy library]计算定积分.
+
+<source lang='javascript'>
+var {pi: PI, sin, cos} = import('math');
+var {quad} = import('scipy.integrate');
+
+var f = 100;
+
+print(quad(function(t) {
+    return cos(2 * PI * f * t) ** 2;
+}, 0, 1)[0]); // exact value is 1/2
+
+print(quad(function(t) {
+    return cos(2 * PI * f * t) * sin(2 * PI * f * t);
+}, 0, 1)[0]); // exact value is 0
+</source>
+
+=== 类 ===
+
+支持ES4的类定义语法。可以使用<code>public</code>和<code>private</code>作为访问控制符。
+
+<source lang='actionscript'>
+class Rectangle {
+    private var h;
+    private var w;
+
+    public function get area() {
+        return this.w * this.h;
+    }
+
+    public function Rectangle(width, height) {
+        this.w = width;
+        this.h = height;
+    }
+}
+
+print((new Rectangle(5, 6)).area); // 30
+</source>
+
+== 设计目标 ==
+
+# 提供ECMAScript相近的语言特性。
+# 具有比标准的ECMAScript更严格的特性以减少常见的错误，同时也避免非熟练ES使用者困惑。
+# 提供一套易用的机制利用Python的模块或者让使用YAGS编写的模块为Python代码所用。
+# 适合用来写小型的脚本或者工具，但也可以用来写一个巨大的项目。
+
+同时，这些内容不是YAGS的设计目标：
+
+# YAGS不会完美地实现一个ECMAScript标准。换句话说，这不是一个用来运行不加修改的js代码的工具。
+# YAGS并不是为了减少代码量而设计的，不会有太多难以被初学者理解的语法糖等语言特征。
+
+YAGS的实现分为三个层次，目前只实现了Level 0（也就是编译器），正在实现Level 1。
+
+# Level 0：该层次只提供语法层面的特征，而不改变对应的行为，使用Python原生的内置对象。（<code>[]</code>产生的是<code>list</code>，<code>{}</code>产生的是<code>dict</code>）
+# Level 1：该层次具有完整的语言特征，包括一套内置对象。
+# Level 2：在Level 1的基础上，该层次提供变量类型检查。
+
