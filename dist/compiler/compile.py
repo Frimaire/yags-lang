@@ -127,7 +127,7 @@ sed as the output directory.")}))
     srcpath = normpath(srcpath)
     if __x_cb(__x_eq(dstpath, None)):
         fn = basename(srcpath)
-        fn = (__x_at_slice(fn, 0, -5) if __x_cb(__x_eq(__x_at_slice(fn, -3), (u".yags"))) else (__x_at_slice(fn, 
+        fn = (__x_at_slice(fn, 0, -5) if __x_cb(__x_eq(__x_at_slice(fn, -5), (u".yags"))) else (__x_at_slice(fn, 
 0, -3) if __x_cb(__x_eq(__x_at_slice(fn, -3), (u".as"))) else fn)) + (u".py")
         dstpath = join(dirname(srcpath), fn)
     # end if (line 128)

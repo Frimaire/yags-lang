@@ -155,7 +155,7 @@ var {allowDumpIR, allowDumpAST, dstpath, input: srcpath} = argp.parse_args();
 srcpath = normpath(srcpath);
 if(dstpath === null) {
     var fn = basename(srcpath);
-    fn = (fn.@slice(-3) === '.yags' ? fn.@slice(0, -5) : (fn.@slice(-3) === '.as' ? fn.@slice(0, -3) : fn)) + '.py';
+    fn = (fn.@slice(-5) === '.yags' ? fn.@slice(0, -5) : (fn.@slice(-3) === '.as' ? fn.@slice(0, -3) : fn)) + '.py';
     dstpath = join(dirname(srcpath), fn);
 }
 
