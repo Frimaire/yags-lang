@@ -1439,6 +1439,163 @@ public class BinaryOperatorElement extends ExpressionElement {
         return 'binary';
     }
 
+    /**
+     * check if if this is a compile-time constant, 
+     * or other expressions without any side-effect, such as literals
+     */
+    override public function get constantOnly():Boolean {
+        return this.firstChild.constantOnly && this.lastChild.constantOnly;
+    }
+
+    /**
+    * check if if this is only a temp variable, 
+    * or other expressions without any side-effect, such as literals
+    */
+    override public function get tempVarOnly():Boolean {
+        // may throw exception
+        return false;
+    }
+
+    /**
+     * the required struture of this
+     */
+    override public function get structList():ArrayList {
+        return new ArrayList([new ElementPattern(ExpressionElement, 2, false)]);
+    }
+
+    /**
+     * pre-stage 2
+     */
+    override public function functionalize():void {
+        this.checkStruct();
+        super.functionalize();
+        var op = this.source;
+        var a = this.firstChild;
+        var b = this.lastChild;
+        // instanceof, ===, !==要转换为函数
+        var opfMap = new StringMap([
+            ['instanceof', '__x_iof'], 
+            ['===', '__x_eq'], ['!==', '__x_ne']
+        ]);
+        var fn = opfMap.get(op, null);
+        if(fn === null) {
+            return;
+        }
+        var cc = new CallElement(null);
+        this.replaceWith(cc);
+        var callee = VarElement.getGlobalVar(fn);
+        cc.append(callee);
+        var argv = new ArgumentElement(null);
+        cc.append(argv);
+        argv.append(a);
+        argv.append(b);
+        cc.checkStruct();
+    }
+
+    /**
+    * walk stage 2
+    *
+    * 简化表达式, 提升复杂表达式, 使之能被py表示
+    */
+    override public function simplifyExpressions():void {
+        this.checkStruct();
+        if(!this.complex) {
+            return;
+        }
+        var left = this.firstChild;
+        var right = this.lastChild;
+        var op = this.source;
+
+        // 对于其他双目运算符, 左右操作数都会执行
+        if(right.complex) {
+            // 左操作数总是在右操作数前执行, 因此需要先析出左操作数
+            var ale = left.replaceWithTemp();
+            this.insertTempAssign(ale);
+            right.simplifyExpressions();
+        } else {
+            left.simplifyExpressions();
+        }
+    }
+
+    /**
+     * to python string
+     * @param {LineWriter} writer
+     * @param {String} contchr
+     */
+    override public function writePython(writer:LineWriter, contchr:*, parentType:Number = 0):void {
+        var oppMap = new StringMap([
+            ['+', 8], ['-', 8], ['*', 9], ['/', 9], ['%', 9], ['**', 9],
+            ['>>', 7], ['<<', 7], ['&', 6], ['^', 5], ['|', 4],
+            ['==', 3], ['!=', 3], ['<=', 3], ['<', 3], ['>=', 3], ['>', 3]
+        ]);
+        var op = this.source;
+        var left = this.firstChild;
+        var right = this.lastChild;
+        if(!oppMap.has(op)) {
+            throw new InternalError('Cannot writePython for binary ' + op);
+        }
+        var p = oppMap.get(op);
+        // 双目运算是左结合的, 右边需要提升一个优先级
+        var lp = p;
+        var rp = p + 1;
+        if(op === '**') {
+            // 幂(**)是特例, 和单目运算符混合时总是加上括号, 尽管py无此规定
+            lp = 11;
+            rp = 11;
+        }
+        // 为了避免变成连续比较, 比较之间总是加括号
+        if(p === 3) {
+            lp = 4;
+            rp = 4;
+        }
+        var ap = p < parentType;
+        var lsp = ap ? '' : contchr; 
+        if(ap) {
+            writer.write('(', false);
+        }
+        left.writePython(writer, lsp, lp);
+        writer.write(' ' + op + ' ', lsp);
+        right.writePython(writer, lsp, rp);
+        if(ap) {
+            writer.write(')', contchr);
+        }
+    }
+
+    /**
+     * dump to XML code
+     */
+    override public function dump(ctx:XMLDumper):void {
+        ctx.attr('operator', this.source);
+        super.dump(ctx);
+    }
+
+    /**
+     * the constructor
+     */
+    public function BinaryOperatorElement(source:String, range:Range) {
+        super(range);
+        this.source = source;
+    }
+}
+
+// #########= BinaryLogicalElement
+
+/**
+ * class of the binary logic operators
+ */
+public class BinaryLogicalElement extends ExpressionElement {
+    /**
+     * raw (operator) in js, a string
+     */
+    private var source:String;
+
+    /**
+    * the name of this element
+    */
+    override public function get typeName():String {
+        return 'logic';
+    }
+
     /** 
      * check if this is a complex expression
      */
@@ -1484,33 +1641,14 @@ public class BinaryOperatorElement extends ExpressionElement {
             var chk = CallElement.callGlobal('__x_cb', a);
             this.prepend(chk);
             this.checkStruct();
-            return;
         }
-        // instanceof, ===, !==要转换为函数
-        var opfMap = new StringMap([
-            ['instanceof', '__x_iof'], 
-            ['===', '__x_eq'], ['!==', '__x_ne']
-        ]);
-        var fn = opfMap.get(op, null);
-        if(fn === null) {
-            return;
-        }
-        var cc = new CallElement(null);
-        this.replaceWith(cc);
-        var callee = VarElement.getGlobalVar(fn);
-        cc.append(callee);
-        var argv = new ArgumentElement(null);
-        cc.append(argv);
-        argv.append(a);
-        argv.append(b);
-        cc.checkStruct();
     }
 
     /**
-    * walk stage 2
-    *
-    * 简化表达式, 提升复杂表达式, 使之能被py表示
-    */
+     * walk stage 2
+     *
+     * 简化表达式, 提升复杂表达式, 使之能被py表示
+     */
     override public function simplifyExpressions():void {
         this.checkStruct();
         if(!this.complex) {
@@ -1520,78 +1658,64 @@ public class BinaryOperatorElement extends ExpressionElement {
         var right = this.lastChild;
         var op = this.source;
 
-        if(op === '&&' || op === '||' || op === '??') {
-            // 由于&&, ||, ??是短路的, 故需要转换为if语句
-            // example:
-            //
-            // input:
-            // a(b && c)
-            // output:
-            // __temp0 = __x_cb(b)
-            // if(__temp0) {
-            //   __temp0 = c;
-            // }
-            // a(__temp0)
-            //
-            // input:
-            // a(b || c)
-            // output:
-            // __temp0 = b
-            // if(!__temp0) {
-            //   __temp0 = c;
-            // }
-            // a(__temp0)
-            //
-            // input:
-            // a(b ?? c)
-            // output:
-            // __temp0 = b
-            // if(__temp0 === null) {
-            //   __temp0 = c;
-            // }
-            // a(__temp0)
-            var atva = this.theFunction.allocTempVar();
-            var atvl = new AssignTempElement(atva);
-            this.theStatement.before(atvl);
-            atvl.append(left);
-            atvl.simplifyExpressions();
+        // 由于&&, ||, ??是短路的, 故需要转换为if语句
+        //
+        // input:
+        // a(b && c)
+        // output:
+        // __temp0 = __x_cb(b)
+        // if(__temp0) {
+        //   __temp0 = c;
+        // }
+        // a(__temp0)
+        //
+        // input:
+        // a(b || c)
+        // output:
+        // __temp0 = b
+        // if(!__temp0) {
+        //   __temp0 = c;
+        // }
+        // a(__temp0)
+        //
+        // input:
+        // a(b ?? c)
+        // output:
+        // __temp0 = b
+        // if(__temp0 === null) {
+        //   __temp0 = c;
+        // }
+        // a(__temp0)
+        var atva = this.theFunction.allocTempVar();
+        var atvl = new AssignTempElement(atva);
+        this.theStatement.before(atvl);
+        atvl.append(left);
+        atvl.simplifyExpressions();
 
-            var ife = new IfBlockElement(null);
-            this.theStatement.before(ife);
-            var iife = new IfElement(null);
-            ife.append(iife);
-            var acond = new ConditionElement(null);
-            iife.append(acond);
-            if(op === '&&') {
-                acond.append(atvl.getLeftElement());
-            } else if(op === '||') {
-                var acondor = new NotOperatorElement(null);
-                acond.append(acondor);
-                acondor.append(atvl.getLeftElement());
-            } else if(op === '??') {
-                var acondnc = new NullishCheckElement(null);
-                acond.append(acondnc);
-                acondnc.append(atvl.getLeftElement());
-            }
-            var atrue = new BodyElement(null);
-            iife.append(atrue);
-            var atvr = new AssignTempElement(atva);
-            atrue.append(atvr);
-            ife.simplifyExpressions();
-
-            this.replaceWith(atvl.getLeftElement());
-            return;
+        var ife = new IfBlockElement(null);
+        this.theStatement.before(ife);
+        var iife = new IfElement(null);
+        ife.append(iife);
+        var acond = new ConditionElement(null);
+        iife.append(acond);
+        if(op === '&&') {
+            acond.append(atvl.getLeftElement());
+        } else if(op === '||') {
+            var acondor = new NotOperatorElement(null);
+            acond.append(acondor);
+            acondor.append(atvl.getLeftElement());
+        } else if(op === '??') {
+            var acondnc = new NullishCheckElement(null);
+            acond.append(acondnc);
+            acondnc.append(atvl.getLeftElement());
         }
+        var atrue = new BodyElement(null);
+        iife.append(atrue);
+        var atvr = new AssignTempElement(atva);
+        atrue.append(atvr);
+        ife.simplifyExpressions();
 
-        // 对于其他双目运算符, 左右操作数都会执行
-        if(right.complex) {
-            // 左操作数总是在右操作数前执行, 因此需要先析出左操作数
-            var ale = left.replaceWithTemp();
-            this.insertTempAssign(ale);
-            right.simplifyExpressions();
-        } else {
-            left.simplifyExpressions();
-        }
+        this.replaceWith(atvl.getLeftElement());
     }
 
     /**
@@ -1600,44 +1724,13 @@ public class BinaryOperatorElement extends ExpressionElement {
      * @param {String} contchr
      */
     override public function writePython(writer:LineWriter, contchr:*, parentType:Number = 0):void {
-        var oppMap = new StringMap([
-            ['+', 8], ['-', 8], ['*', 9], ['/', 9], ['%', 9], ['**', 9],
-            ['>>', 7], ['<<', 7], ['&', 6], ['^', 5], ['|', 4],
-            ['==', 3], ['!=', 3], ['<=', 3], ['<', 3], ['>=', 3], ['>', 3]
-        ]);
         var op = this.source;
         var left = this.firstChild;
         var right = this.lastChild;
-        if(oppMap.has(op)) {
-            var p = oppMap.get(op);
-            // 双目运算是左结合的, 右边需要提升一个优先级
-            var lp = p;
-            var rp = p + 1;
-            if(op === '**') {
-                // 幂(**)是特例, 和单目运算符混合时总是加上括号, 尽管py无此规定
-                lp = 11;
-                rp = 11;
-            }
-            // 为了避免变成连续比较, 比较之间总是加括号
-            if(p === 3) {
-                lp = 4;
-                rp = 4;
-            }
-            var ap = p < parentType;
-            var lsp = ap ? '' : contchr; 
-            if(ap) {
-                writer.write('(', false);
-            }
-            left.writePython(writer, lsp, lp);
-            writer.write(' ' + op + ' ', lsp);
-            right.writePython(writer, lsp, rp);
-            if(ap) {
-                writer.write(')', contchr);
-            }
-        } else if(op === '||' || op === '&&') {
+        if(op === '||' || op === '&&') {
             // 总是给混合使用的逻辑运算符加括号
-            ap = 2 <= parentType;
-            lsp = ap ? '' : contchr; 
+            var ap = 2 <= parentType;
+            var lsp = ap ? '' : contchr; 
             if(ap) {
                 writer.write('(', false);
             }
@@ -1649,7 +1742,8 @@ public class BinaryOperatorElement extends ExpressionElement {
                 writer.write(')', contchr);
             }
         } else {
-            throw new InternalError('Cannot writePython for binary ' + op);
+            // ?? 全部要变成if语句
+            throw new InternalError('Cannot writePython for logic ' + op);
         }
     }
 
@@ -1664,7 +1758,7 @@ public class BinaryOperatorElement extends ExpressionElement {
     /**
      * the constructor
      */
-    public function BinaryOperatorElement(source:String, range:Range) {
+    public function BinaryLogicalElement(source:String, range:Range) {
         super(range);
         this.source = source;
     }

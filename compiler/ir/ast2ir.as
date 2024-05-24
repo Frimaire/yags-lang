@@ -3,7 +3,7 @@ var {StringMap} = import('.StringMap');
 var {Range, InternalError, CompileError} = import('.utils');
 var {Attribute} = import('.identifier');
 var {Syntax} = import('.syntax');
-var {ArgumentElement, ArrayElement, AssignDestructElement, AssignElement, AssignTempElement, AttributeElement, BaseFunctionElement, BinaryOperatorElement, BlockElement, BodyElement, BooleanLiteralElement, BreakElement, CallElement, CatchElement, ClassElement, ClassGroupElement, ClassInitElement, ComplexLiteralElement, CompoundAssignElement, ConditionElement, ContinueElement, DeleteElement, DestructGroupElement, DestructObjectElement, DestructPropertyElement, DoWhileElement, Element, ElifElement, ElseElement, ExpressionElement, ExpressionStatementElement, FinallyElement, FunctionDefinitionElement, FunctionElement, FunctionExpressionElement, FunctionGroupElement, FundamentalLiteralElement, GlobalElement, IfBlockElement, IfElement, ImportElement, InstanceGroupElement, InstanceInitializerElement, ItemElement, KeyValueElement, LvalueElement, MagicCallElement, MethodElement, MethodGroupElement, MethodParameterGroupElement, NotOperatorElement, NullLiteralElement, NullishCheckElement, NumberLiteralElement, ObjectLiteralElement, ParameterAssignElement, ParameterElement, ParameterGroupElement, RestParameterElement, ReturnElement, SequenceElement, SpreadElement, StatementElement, StaticGroupElement, StaticInitializerElement, StringLiteralElement, SuperElement, TernaryOperatorElement, ThisElement, ThrowElement, TryBlockElement, TryElement, TupleElement, UniaryOperatorElement, UpdateElement, VarDeclaratorElement, VarElement, WhileElement} = import('.element');
+var {ArgumentElement, ArrayElement, AssignDestructElement, AssignElement, AssignTempElement, AttributeElement, BaseFunctionElement, BinaryOperatorElement, BinaryLogicalElement, BlockElement, BodyElement, BooleanLiteralElement, BreakElement, CallElement, CatchElement, ClassElement, ClassGroupElement, ClassInitElement, ComplexLiteralElement, CompoundAssignElement, ConditionElement, ContinueElement, DeleteElement, DestructGroupElement, DestructObjectElement, DestructPropertyElement, DoWhileElement, Element, ElifElement, ElseElement, ExpressionElement, ExpressionStatementElement, FinallyElement, FunctionDefinitionElement, FunctionElement, FunctionExpressionElement, FunctionGroupElement, FundamentalLiteralElement, GlobalElement, IfBlockElement, IfElement, ImportElement, InstanceGroupElement, InstanceInitializerElement, ItemElement, KeyValueElement, LvalueElement, MagicCallElement, MethodElement, MethodGroupElement, MethodParameterGroupElement, NotOperatorElement, NullLiteralElement, NullishCheckElement, NumberLiteralElement, ObjectLiteralElement, ParameterAssignElement, ParameterElement, ParameterGroupElement, RestParameterElement, ReturnElement, SequenceElement, SpreadElement, StatementElement, StaticGroupElement, StaticInitializerElement, StringLiteralElement, SuperElement, TernaryOperatorElement, ThisElement, ThrowElement, TryBlockElement, TryElement, TupleElement, UniaryOperatorElement, UpdateElement, VarDeclaratorElement, VarElement, WhileElement} = import('.element');
 
 public function convertASTIR(ast:Object):GlobalElement {
     assrt(ast, Syntax.Program);
@@ -232,10 +232,20 @@ function convUnary(p:Element, o:Object):void {
 }
 
 function convBinary(p:Element, o:Object):void {
-    assrt2(o, [Syntax.BinaryExpression, Syntax.LogicalExpression]);
+    assrt(o, Syntax.BinaryExpression);
     var ra = Range.fromAST(o);
     var op = o.operator;
     var ee = new BinaryOperatorElement(op, ra);
+    p.append(ee);
+    convExpr(ee, o.left);
+    convExpr(ee, o.right);
+}
+
+function convBinaryLogic(p:Element, o:Object):void {
+    assrt(o, Syntax.LogicalExpression);
+    var ra = Range.fromAST(o);
+    var op = o.operator;
+    var ee = new BinaryLogicalElement(op, ra);
     p.append(ee);
     convExpr(ee, o.left);
     convExpr(ee, o.right);
@@ -283,7 +293,7 @@ function convExpr(p:Element, o:Object):void {
             [Syntax.ObjectExpression, convObject],
             [Syntax.UnaryExpression, convUnary],
             [Syntax.BinaryExpression, convBinary],
-            [Syntax.LogicalExpression, convBinary],
+            [Syntax.LogicalExpression, convBinaryLogic],
             [Syntax.UpdateExpression, convUpdate],
             [Syntax.ConditionalExpression, convCond],
             [Syntax.FunctionExpression, convFuncExpr],
