@@ -5,10 +5,14 @@ var {Attribute} = import('.identifier');
 var {Syntax} = import('.syntax');
 var {ArgumentElement, ArrayElement, AssignDestructElement, AssignElement, AssignTempElement, AttributeElement, BaseFunctionElement, BinaryOperatorElement, BinaryLogicalElement, BlockElement, BodyElement, BooleanLiteralElement, BreakElement, CallElement, CatchElement, ClassElement, ClassGroupElement, ClassInitElement, ComplexLiteralElement, CompoundAssignElement, ConditionElement, ContinueElement, DeleteElement, DestructGroupElement, DestructObjectElement, DestructPropertyElement, DoWhileElement, Element, ElifElement, ElseElement, ExpressionElement, ExpressionStatementElement, FinallyElement, FunctionDefinitionElement, FunctionElement, FunctionExpressionElement, FunctionGroupElement, FundamentalLiteralElement, GlobalElement, IfBlockElement, IfElement, ImportElement, InstanceGroupElement, InstanceInitializerElement, ItemElement, KeyValueElement, LvalueElement, MagicCallElement, MethodElement, MethodGroupElement, MethodParameterGroupElement, NotOperatorElement, NullLiteralElement, NullishCheckElement, NumberLiteralElement, ObjectLiteralElement, ParameterAssignElement, ParameterElement, ParameterGroupElement, RestParameterElement, ReturnElement, SequenceElement, SpreadElement, StatementElement, StaticGroupElement, StaticInitializerElement, StringLiteralElement, SuperElement, TernaryOperatorElement, ThisElement, ThrowElement, TryBlockElement, TryElement, TupleElement, UniaryOperatorElement, UpdateElement, VarDeclaratorElement, VarElement, WhileElement} = import('.element');
 
-public function convertASTIR(ast:Object):GlobalElement {
+public function convertASTIR(ast:Object, options:StringMap):GlobalElement {
     assrt(ast, Syntax.Program);
     var ra = Range.fromAST(ast);
     var ir = new GlobalElement(ra);
+    if(options === null) {
+        options = new StringMap();
+    }
+    ir.enableImplicitBooleanConversion = options.get('enableImplicitBooleanConversion', false);
     convTop(ir, ast);
     return ir;
 }

@@ -21,6 +21,7 @@ var {parse, toDict} = import('parser.esprima');
 var {convertASTIR} = import('ir.ast2ir');
 var {XMLDumper} = import('ir.utils');
 var {PyGenerator} = import('ir.pygen');
+var {StringMap} = import('ir.StringMap');
 
 var version = "0.1";
 
@@ -62,7 +63,7 @@ function dumpAST(ast, path = 'unknown-ast.json', action = true) {
  * @param {Boolean} dump, true if the IR XML should be dumped into output directory
  * @param {Boolean} dast, true if the AST should be dumped into output directory
  */
-function process(srcpath, dstpath, dump = false, dast = false) {
+function process(srcpath, dstpath, dump = false, dast = false, options = null) {
     var srcf = open(srcpath, 'rb');
     try {
         var ascode = srcf.read().decode('utf-8');
@@ -82,7 +83,7 @@ function process(srcpath, dstpath, dump = false, dast = false) {
     });
     dumpAST(ast, dfn + '-ast.json', dast);
 
-    var ir = convertASTIR(ast);
+    var ir = convertASTIR(ast, options);
     try {
         ir.checkAllStructure();
         dumpIR(ir, dfn + '-initial.xml', dump);
@@ -148,8 +149,13 @@ aarg(['input'], {
     metavar: 'INPUT_FILE',
     help: 'Specify the path of input file.'
 });
+aarg(['--enable-implicit-bool'], {
+    action: 'store_true',
+    dest: 'implBoolConv',
+    help: 'Enable experimental implicit boolean conversion.'
+});
 
-var {allowDumpIR, allowDumpAST, dstpath, input: srcpath} = argp.parse_args();
+var {allowDumpIR, allowDumpAST, dstpath, implBoolConv, input: srcpath} = argp.parse_args();
 
 // get the output name and directory
 srcpath = normpath(srcpath);
@@ -159,4 +165,4 @@ if(dstpath === null) {
     dstpath = join(dirname(srcpath), fn);
 }
 
-process(srcpath, dstpath, allowDumpIR, allowDumpAST);
+process(srcpath, dstpath, allowDumpIR, allowDumpAST, new StringMap([['enableImplicitBooleanConversion', implBoolConv]]));

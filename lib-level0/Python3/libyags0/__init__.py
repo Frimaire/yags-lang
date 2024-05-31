@@ -24,6 +24,8 @@ __all__ = (
     '__x_tup', '__x_errT',
     # operators
     '__x_eq', '__x_ne', '__x_typ', '__x_cb', '__x_not', '__x_iof', '__x_inc', '__x_dec',
+    # implicit boolean conversion
+    '__x_tob', '__x_tnb',
     # miscellaneous
     '__x_var', '__x_imf', '__x_lst', '__x_tupof',
     # magic functions
@@ -97,3 +99,7 @@ __x_prop = property
 # Infinity and NaN
 from .compat import Infinity
 from .compat import NaN
+
+# (experimentally) implicit boolean conversion
+from .operator import toBoolean as __x_tob
+from .operator import toNotBoolean as __x_tnb

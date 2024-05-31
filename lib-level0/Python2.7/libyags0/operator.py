@@ -120,6 +120,52 @@ def coerceNot(x):
 # end coerceNot
 
 
+# implicit conversion to boolean
+def toBoolean(x):
+    if True is x:
+        return True
+    if False is x:
+        return False
+    T = type(x)
+    try:
+        bf = type.__getattribute__(T, '__bool__')
+    except AttributeError:
+        return True
+    if not callable(bf):
+        raise TypeError('__bool__ method of ' + type.__getattribute__(T, '__name__') +
+                        ' is not callable')
+    r = bf(x)
+    if True is r:
+        return True
+    if False is r:
+        return False
+    raise TypeError('__bool__ must return a boolean')
+# end toBoolean
+
+
+# implicit conversion to boolean and invert
+def toNotBoolean(x):
+    if True is x:
+        return False
+    if False is x:
+        return True
+    T = type(x)
+    try:
+        bf = type.__getattribute__(T, '__bool__')
+    except AttributeError:
+        return False
+    if not callable(bf):
+        raise TypeError('__bool__ method of ' + type.__getattribute__(T, '__name__') +
+                        ' is not callable')
+    r = bf(x)
+    if True is r:
+        return False
+    if False is r:
+        return True
+    raise TypeError('__bool__ must return a boolean')
+# end toNotBoolean
+
+
 # check if x is number for ++
 def inc(x):
     if isinstance(x, NumberTypes) and not isinstance(x, bool):

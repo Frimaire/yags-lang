@@ -1590,8 +1590,8 @@ public class BinaryLogicalElement extends ExpressionElement {
     private var source:String;
 
     /**
-    * the name of this element
-    */
+     * the name of this element
+     */
     override public function get typeName():String {
         return 'logic';
     }
@@ -1600,6 +1600,10 @@ public class BinaryLogicalElement extends ExpressionElement {
      * check if this is a complex expression
      */
     override public function get complex():Boolean {
+        if(this.theGlobal.enableImplicitBooleanConversion) {
+            // should cache the value
+            return true;
+        }
         return this.source === '??' || super.complex;
     }
 
@@ -1612,9 +1616,9 @@ public class BinaryLogicalElement extends ExpressionElement {
     }
 
     /**
-    * check if if this is only a temp variable, 
-    * or other expressions without any side-effect, such as literals
-    */
+     * check if if this is only a temp variable, 
+     * or other expressions without any side-effect, such as literals
+     */
     override public function get tempVarOnly():Boolean {
         // may throw exception
         return false;
@@ -1636,12 +1640,70 @@ public class BinaryLogicalElement extends ExpressionElement {
         var op = this.source;
         var a = this.firstChild;
         var b = this.lastChild;
-        // 对于布尔运算符, 需要检查布尔类型
-        if(op === '&&' || op === '||') {
+        // coerce to the boolean type if implicit boolean conversion is not enabled
+        if(!this.theGlobal.enableImplicitBooleanConversion && (op === '&&' || op === '||')) {
             var chk = CallElement.callGlobal('__x_cb', a);
             this.prepend(chk);
             this.checkStruct();
         }
+    }
+
+    /**
+     * walk stage 2 under enableImplicitBooleanConversion
+     */
+    private function simplifyExpressionsImplicitBooleanConversion():void {
+        // convert to if, use TOBoolean(tob) / ToNotBoolean(tnb) function
+        //
+        // input:
+        // a(b && c)
+        // output:
+        // __temp0 = b
+        // if(__x_tob(__temp0)) {
+        //   __temp0 = c;
+        // }
+        // a(__temp0)
+        //
+        // input:
+        // a(b || c)
+        // output:
+        // __temp0 = b
+        // if(!(__temp0)) {
+        //   __temp0 = c;
+        // }
+        // a(__temp0)
+        var left = this.firstChild;
+        var right = this.lastChild;
+        var op = this.source;
+        
+        var atva = this.theFunction.allocTempVar();
+        var atvl = new AssignTempElement(atva);
+        this.theStatement.before(atvl);
+        atvl.append(left);
+        atvl.simplifyExpressions();
+
+        var ife = new IfBlockElement(null);
+        this.theStatement.before(ife);
+        var iife = new IfElement(null);
+        ife.append(iife);
+        var acond = new ConditionElement(null);
+        iife.append(acond);
+        if(op === '&&') {
+            acond.append(CallElement.callGlobal('__x_tob', atvl.getLeftElement()));
+        } else if(op === '||') {
+            acond.append(CallElement.callGlobal('__x_tnb', atvl.getLeftElement()));
+        } else if(op === '??') {
+            var acondnc = new NullishCheckElement(null);
+            acond.append(acondnc);
+            acondnc.append(atvl.getLeftElement());
+        }
+        var atrue = new BodyElement(null);
+        iife.append(atrue);
+        var atvr = new AssignTempElement(atva);
+        atrue.append(atvr);
+        atvr.append(right);
+        ife.simplifyExpressions();
+
+        this.replaceWith(atvl.getLeftElement());
     }
 
     /**
@@ -1651,6 +1713,10 @@ public class BinaryLogicalElement extends ExpressionElement {
      */
     override public function simplifyExpressions():void {
         this.checkStruct();
+        if(this.theGlobal.enableImplicitBooleanConversion) {
+            this.simplifyExpressionsImplicitBooleanConversion();
+            return;
+        }
         if(!this.complex) {
             return;
         }
@@ -1713,6 +1779,7 @@ public class BinaryLogicalElement extends ExpressionElement {
         iife.append(atrue);
         var atvr = new AssignTempElement(atva);
         atrue.append(atvr);
+        atvr.append(right);
         ife.simplifyExpressions();
 
         this.replaceWith(atvl.getLeftElement());
@@ -2985,7 +3052,7 @@ public class ConditionElement extends Element {
         // 条件式要求严格布尔类型, 也就是只接受true和false
         // 因此要将条件用coerceBoolean(__x_cb)包裹, 进行类型检查以确保严格布尔判断
         var exp = this.firstChild;
-        var cc = CallElement.callGlobal('__x_cb', exp);
+        var cc = CallElement.callGlobal(this.theGlobal.enableImplicitBooleanConversion ? '__x_tob' : '__x_cb', exp);
         this.append(cc);
         this.checkStruct();
     }
@@ -4010,6 +4077,11 @@ public class GlobalElement extends BaseFunctionElement {
     private var functionCounter:Number = 0;
 
     /**
+     * compile option enableImplicitBooleanConversion
+     */
+    public var enableImplicitBooleanConversion:Boolean = false;
+
+    /**
      * the name of this element
      */
     override public function get typeName():String {
@@ -4210,7 +4282,7 @@ public class GlobalElement extends BaseFunctionElement {
         gen.tab();
 
         // 导入超全局变量
-        gen.writeln('from libyags0 import __x_tup, __x_tupof, __x_lst, __x_errT, __x_eq, __x_ne, __x_typ, __x_cb, __x_not, __x_iof, __x_inc, __x_dec, __x_var, __x_imf, __x_at_take, __x_at_drop, __x_at_forEach, __x_at_map, __x_at_filter, __x_at_flatMap, __x_at_some, __x_at_every, __x_at_find, __x_at_findIndex, __x_at_reduce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_at_push, __x_at_pop, __x_at_shift, __x_at_unshift, __x_at_slice, __x_at_splice, __x_dcls, __x_dpif, __x_dpsf, __x_prmT, __x_csgT, __x_cpgT, __x_objT, __x_smet, __x_prop, Infinity, NaN');
+        gen.writeln('from libyags0 import __x_tup, __x_tupof, __x_lst, __x_errT, __x_eq, __x_ne, __x_typ, __x_cb, __x_not, __x_iof, __x_inc, __x_dec, __x_var, __x_imf, __x_at_take, __x_at_drop, __x_at_forEach, __x_at_map, __x_at_filter, __x_at_flatMap, __x_at_some, __x_at_every, __x_at_find, __x_at_findIndex, __x_at_reduce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_at_push, __x_at_pop, __x_at_shift, __x_at_unshift, __x_at_slice, __x_at_splice, __x_dcls, __x_dpif, __x_dpsf, __x_prmT, __x_csgT, __x_cpgT, __x_objT, __x_smet, __x_prop, __x_tob, __x_tnb, Infinity, NaN');
         // 生成import函数(把__package__绑定为import_module的第二参数)
         gen.writeln('__x_imp = __x_imf(__name__)');
 
@@ -6523,7 +6595,7 @@ public class TernaryOperatorElement extends ExpressionElement {
         this.checkStruct();
         super.functionalize();
         var cond = this.firstChild;
-        var cc = CallElement.callGlobal('__x_cb', cond);
+        var cc = CallElement.callGlobal(this.theGlobal.enableImplicitBooleanConversion ? '__x_tob' : '__x_cb', cond);
         this.prepend(cc);
         this.checkStruct();
     }
@@ -6938,7 +7010,7 @@ public class UniaryOperatorElement extends ExpressionElement {
             return;
         }
         var exp = this.firstChild;
-        var cc = CallElement.callGlobal(n ? '__x_typ' : '__x_not', exp);
+        var cc = CallElement.callGlobal(n ? '__x_typ' : (this.theGlobal.enableImplicitBooleanConversion ? '__x_tnb' : '__x_not'), exp);
         this.replaceWith(cc);
     }
 
