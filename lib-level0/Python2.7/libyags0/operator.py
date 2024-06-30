@@ -2,6 +2,7 @@
 # operators of YAGS runtime
 from __future__ import print_function, absolute_import, division, generators, unicode_literals
 from .compat import IntegerTypes, NumberTypes, StringType, BytesType
+from numbers import Complex, Real
 
 
 # operator "==="
@@ -86,14 +87,14 @@ def strictInequal(x, y):
 def typeof(x):
     if isinstance(x, bool):
         return 'boolean'
-    if isinstance(x, NumberTypes):
+    if isinstance(x, Real):
         return 'number'
+    if isinstance(x, Complex):
+        return 'complex'
     if isinstance(x, StringType):
         return 'string'
     if isinstance(x, BytesType):
         return 'string'
-    if isinstance(x, complex):
-        return 'complex'
     if callable(x):
         return 'function'
     return 'object'
