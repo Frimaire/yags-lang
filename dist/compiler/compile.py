@@ -39,7 +39,7 @@ def __():
         # end try (line 35)
     # end function dumpAST (line 29)
 
-    def process(srcpath, dstpath, dump = (False), dast = (False)):
+    def process(srcpath, dstpath, dump = (False), dast = (False), options = (None)):
         srcf = open(srcpath, (u"rb"))
         try:
             ascode = srcf.read().decode((u"utf-8"))
@@ -50,7 +50,7 @@ def __():
         ast = __x_at_apply(parse, [ascode], ({(u"options"): ({(u"attachComment"): True, (u"loc"): True, (u"range"): 
 True})}))
         dumpAST(ast, dfn + (u"-ast.json"), dast)
-        ir = convertASTIR(ast)
+        ir = convertASTIR(ast, options)
         try:
             ir.checkAllStructure()
             dumpIR(ir, dfn + (u"-initial.xml"), dump)
@@ -107,6 +107,8 @@ True})}))
     XMLDumper = __r6.XMLDumper
     __r7 = __x_imp((u"ir.pygen"))
     PyGenerator = __r7.PyGenerator
+    __r8 = __x_imp((u"ir.StringMap"))
+    StringMap = __r8.StringMap
     version = (u"0.1")
     argp = ArgumentParser((u"yags"), None, (u"Compile YAGS to Python code"))
     aarg([(u"-v"), (u"--version")], ({(u"action"): (u"version"), (u"version"): ((u"YAGS compiler %s (on Python %d.%d)")
@@ -119,19 +121,23 @@ True})}))
 (u"help"): (u"Specify the path of output file. If this is not specified, the same directory as the input will be u\
 sed as the output directory.")}))
     aarg([(u"input")], ({(u"action"): (u"store"), (u"metavar"): (u"INPUT_FILE"), (u"help"): (u"Specify the path of input file.")}))
-    __r8 = argp.parse_args()
-    allowDumpIR = __r8.allowDumpIR
-    allowDumpAST = __r8.allowDumpAST
-    dstpath = __r8.dstpath
-    srcpath = __r8.input
+    aarg([(u"--enable-implicit-bool")], ({(u"action"): (u"store_true"), (u"dest"): (u"implBoolConv"), (u"help"): 
+(u"Enable experimental implicit boolean conversion.")}))
+    __r9 = argp.parse_args()
+    allowDumpIR = __r9.allowDumpIR
+    allowDumpAST = __r9.allowDumpAST
+    dstpath = __r9.dstpath
+    implBoolConv = __r9.implBoolConv
+    srcpath = __r9.input
     srcpath = normpath(srcpath)
     if __x_cb(__x_eq(dstpath, None)):
         fn = basename(srcpath)
         fn = (__x_at_slice(fn, 0, -5) if __x_cb(__x_eq(__x_at_slice(fn, -5), (u".yags"))) else (__x_at_slice(fn, 
 0, -3) if __x_cb(__x_eq(__x_at_slice(fn, -3), (u".as"))) else fn)) + (u".py")
         dstpath = join(dirname(srcpath), fn)
-    # end if (line 128)
-    process(srcpath, dstpath, allowDumpIR, allowDumpAST)
+    # end if (line 133)
+    process(srcpath, dstpath, allowDumpIR, allowDumpAST, StringMap([[(u"enableImplicitBooleanConversion"), 
+implBoolConv]]))
 # program end
 
 

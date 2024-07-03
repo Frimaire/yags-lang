@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 # iterator helpers for python 3
 from __future__ import print_function, absolute_import, division, generators
-from collections import Iterator
+from collections.abc import Iterator
 from itertools import takewhile, dropwhile
-from .compat import RangeError, undefined, StringType, ISPY2
-
-if ISPY2:
-    from itertools import ifilter as filter
-# end if
+from .compat import RangeError, undefined, StringType
 
 from .operator import coerceBoolean, coerceNot
 from .container import qualifyNaturalIndexAllowInfinity
