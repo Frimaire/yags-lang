@@ -431,3 +431,11 @@ def _toStr(v, k):
 def join(self, s = u','):
     return s.join(_MappedIter(self, _toStr))
 # end join
+
+
+# @has
+# py's in operator, test if m is a member of the object
+# in python, in uses == operator
+def has(self, m):
+    return m in self
+# end has

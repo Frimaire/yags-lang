@@ -34,6 +34,7 @@ __all__ = (
     '__x_at_reduce', '__x_at_join', '__x_at_bind', '__x_at_apply', '__x_at_length',
     '__x_at_isEmpty', '__x_at_push', '__x_at_pop', '__x_at_shift', '__x_at_unshift',
     '__x_at_slice', '__x_at_splice',
+    '__x_at_has'
     # class
     '__x_dcls', '__x_dpif', '__x_dpsf', '__x_prmT', '__x_csgT', '__x_cpgT', '__x_objT',
     '__x_smet', '__x_prop',
@@ -84,6 +85,7 @@ from .iterhelper import find as __x_at_find
 from .iterhelper import findIndex as __x_at_findIndex
 from .iterhelper import reduce as __x_at_reduce
 from .iterhelper import join as __x_at_join
+from .iterhelper import has as __x_at_has
 
 # class tools
 from .classtool import defineClass as __x_dcls

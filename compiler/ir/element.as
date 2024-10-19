@@ -2997,7 +2997,7 @@ public class CompoundAssignElement extends AssignElement {
     */
     public function CompoundAssignElement(operator:String, range:Range) {
         super(range);
-        var m = new StringMap([['*=', '*'], ['**=', '**'], ['/=', '/'], ['%=', '%'], ['+=', '+'], ['-=', '-'], ['<<=', '<<'], ['>>=', '>>'], ['&=', '&'], ['^=', '^'], [',=', ',']]);
+        var m = new StringMap([['*=', '*'], ['**=', '**'], ['/=', '/'], ['%=', '%'], ['+=', '+'], ['-=', '-'], ['<<=', '<<'], ['>>=', '>>'], ['&=', '&'], ['^=', '^'], ['|=', '|']]);
         if(!m.has(operator)) {
             throw new InternalError('unknown assignment operator ' + operator);
         }
@@ -4282,7 +4282,7 @@ public class GlobalElement extends BaseFunctionElement {
         gen.tab();
 
         // 导入超全局变量
-        gen.writeln('from libyags0 import __x_tup, __x_tupof, __x_lst, __x_errT, __x_eq, __x_ne, __x_typ, __x_cb, __x_not, __x_iof, __x_inc, __x_dec, __x_var, __x_imf, __x_at_take, __x_at_drop, __x_at_forEach, __x_at_map, __x_at_filter, __x_at_flatMap, __x_at_some, __x_at_every, __x_at_find, __x_at_findIndex, __x_at_reduce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_at_push, __x_at_pop, __x_at_shift, __x_at_unshift, __x_at_slice, __x_at_splice, __x_dcls, __x_dpif, __x_dpsf, __x_prmT, __x_csgT, __x_cpgT, __x_objT, __x_smet, __x_prop, __x_tob, __x_tnb, Infinity, NaN');
+        gen.writeln('from libyags0 import __x_tup, __x_tupof, __x_lst, __x_errT, __x_eq, __x_ne, __x_typ, __x_cb, __x_not, __x_iof, __x_inc, __x_dec, __x_var, __x_imf, __x_at_take, __x_at_drop, __x_at_forEach, __x_at_map, __x_at_filter, __x_at_flatMap, __x_at_some, __x_at_every, __x_at_find, __x_at_findIndex, __x_at_reduce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_at_push, __x_at_pop, __x_at_shift, __x_at_unshift, __x_at_slice, __x_at_splice, __x_at_has, __x_dcls, __x_dpif, __x_dpsf, __x_prmT, __x_csgT, __x_cpgT, __x_objT, __x_smet, __x_prop, __x_tob, __x_tnb, Infinity, NaN');
         // 生成import函数(把__package__绑定为import_module的第二参数)
         gen.writeln('__x_imp = __x_imf(__name__)');
 
@@ -5151,7 +5151,7 @@ public class MagicCallElement extends ExpressionElement {
         // fl doesn't allow super after throw
         super(range);
         var allowFns = new StringMap();
-        allowFns.sets(['apply', 'bind', 'drop', 'every', 'filter', 'find', 'findIndex', 'flatMap', 'forEach', 'isEmpty', 'join', 'length', 'map', 'pop', 'push', 'reduce', 'shift', 'slice', 'some', 'splice', 'take', 'unshift'], true);
+        allowFns.sets(['apply', 'bind', 'drop', 'every', 'filter', 'find', 'findIndex', 'flatMap', 'forEach', 'has', 'isEmpty', 'join', 'length', 'map', 'pop', 'push', 'reduce', 'shift', 'slice', 'some', 'splice', 'take', 'unshift'], true);
         if(!allowFns.has(name)) {
             throw new CompileError('@%s is not a valid magic method', range, name);
         }
