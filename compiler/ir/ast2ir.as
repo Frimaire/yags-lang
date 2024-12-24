@@ -13,6 +13,7 @@ public function convertASTIR(ast:Object, options:StringMap):GlobalElement {
         options = new StringMap();
     }
     ir.enableImplicitBooleanConversion = options.get('enableImplicitBooleanConversion', false);
+    ir.enableTupleSubscription = options.get('enableTupleSubscription', false);
     convTop(ir, ast);
     return ir;
 }
@@ -111,7 +112,7 @@ function convMember(p:Element, o:Object):void {
     p.append(ee);
     convExpr(ee, oo);
     if(cm) {
-        convExpr(ee, po);
+        convExprAllowTuple(ee, po);
     }
 }
 
@@ -318,6 +319,18 @@ function convExpr(p:Element, o:Object):void {
         throw new InternalError('unknown expression ' + o.type, o);
     }
     res(p, o);
+}
+
+function convExprAllowTuple(p:Element, o:Object):void {
+    if(o.type != Syntax.SequenceExpression || !p.theGlobal.enableTupleSubscription) {
+        convExpr(p, o);
+        return;
+    }
+    var ra = Range.fromAST(o);
+    var ce = o.expressions;
+    var cs = new TupleElement(ra);
+    p.append(cs);
+    convArgs(cs, ra, ce);
 }
 
 function convExprStat(p:Element, o:Object):void {

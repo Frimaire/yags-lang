@@ -123,11 +123,16 @@ sed as the output directory.")}))
     aarg([(u"input")], ({(u"action"): (u"store"), (u"metavar"): (u"INPUT_FILE"), (u"help"): (u"Specify the path of input file.")}))
     aarg([(u"--enable-implicit-bool")], ({(u"action"): (u"store_true"), (u"dest"): (u"implBoolConv"), (u"help"): 
 (u"Enable experimental implicit boolean conversion.")}))
+    aarg([(u"--enable-tuple-subscription")], ({(u"action"): (u"store_true"), (u"dest"): (u"tupleSubscr"), 
+(u"help"): (u"Enable experimental tuple subscription. That is, allow comma-separated expressions in the object[exp\
+ressions] syntax, which will be converted to a tuple. This feature is used to facilitate the access \
+of some multidimensional arraies such as numpy.ndarray.")}))
     __r9 = argp.parse_args()
     allowDumpIR = __r9.allowDumpIR
     allowDumpAST = __r9.allowDumpAST
     dstpath = __r9.dstpath
     implBoolConv = __r9.implBoolConv
+    tupleSubscr = __r9.tupleSubscr
     srcpath = __r9.input
     srcpath = normpath(srcpath)
     if __x_cb(__x_eq(dstpath, None)):
@@ -135,9 +140,9 @@ sed as the output directory.")}))
         fn = (__x_at_slice(fn, 0, -5) if __x_cb(__x_eq(__x_at_slice(fn, -5), (u".yags"))) else (__x_at_slice(fn, 
 0, -3) if __x_cb(__x_eq(__x_at_slice(fn, -3), (u".as"))) else fn)) + (u".py")
         dstpath = join(dirname(srcpath), fn)
-    # end if (line 133)
+    # end if (line 138)
     process(srcpath, dstpath, allowDumpIR, allowDumpAST, StringMap([[(u"enableImplicitBooleanConversion"), 
-implBoolConv]]))
+implBoolConv], [(u"enableTupleSubscription"), tupleSubscr]]))
 # program end
 
 

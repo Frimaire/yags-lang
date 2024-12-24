@@ -4082,6 +4082,11 @@ public class GlobalElement extends BaseFunctionElement {
     public var enableImplicitBooleanConversion:Boolean = false;
 
     /**
+     * compile option, enable ndarray indexing such as a[1, 2]
+     */
+    public var enableTupleSubscription:Boolean = false;
+
+    /**
      * the name of this element
      */
     override public function get typeName():String {
@@ -6898,7 +6903,8 @@ public class TryElement extends BodyElement {
 // #########= TupleElement
 
 /**
- * tuple literal
+ * frozen array (tuple) literal
+ * currently only valid for index (such as ndarray in numpy)
  */
 public class TupleElement extends SequenceElement {
     /**

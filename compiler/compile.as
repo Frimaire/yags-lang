@@ -154,8 +154,13 @@ aarg(['--enable-implicit-bool'], {
     dest: 'implBoolConv',
     help: 'Enable experimental implicit boolean conversion.'
 });
+aarg(['--enable-tuple-subscription'], {
+    action: 'store_true',
+    dest: 'tupleSubscr',
+    help: 'Enable experimental tuple subscription. That is, allow comma-separated expressions in the object[expressions] syntax, which will be converted to a tuple. This feature is used to facilitate the access of some multidimensional arraies such as numpy.ndarray.'
+});
 
-var {allowDumpIR, allowDumpAST, dstpath, implBoolConv, input: srcpath} = argp.parse_args();
+var {allowDumpIR, allowDumpAST, dstpath, implBoolConv, tupleSubscr, input: srcpath} = argp.parse_args();
 
 // get the output name and directory
 srcpath = normpath(srcpath);
@@ -165,4 +170,4 @@ if(dstpath === null) {
     dstpath = join(dirname(srcpath), fn);
 }
 
-process(srcpath, dstpath, allowDumpIR, allowDumpAST, new StringMap([['enableImplicitBooleanConversion', implBoolConv]]));
+process(srcpath, dstpath, allowDumpIR, allowDumpAST, new StringMap([['enableImplicitBooleanConversion', implBoolConv], ['enableTupleSubscription', tupleSubscr]]));

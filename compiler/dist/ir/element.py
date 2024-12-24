@@ -3397,17 +3397,18 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
             __cpm[this, "builtins"] = StringMap()
             __cpm[this, "functionCounter"] = 0
             this.enableImplicitBooleanConversion = False
+            this.enableTupleSubscription = False
             # super
             super(__clsT, this).__init__(*argv)
         # end instance initializer and super constructor __csu (line 3392)
 
         __cpiT = __x_dpif("GlobalElement", {"__slots__": ("builtins", "exports", "functionCounter"), "setBuiltins": __x_smet(__m_setBuiltins)})
-        __clsT = __x_dcls("GlobalElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": ("enableImplicitBooleanConversion",), 
-"allocFunctionId": __m_allocFunctionId, "allowSuperCall": __x_prop(__g_allowSuperCall, None), "allowThis": __x_prop(__g_allowThis, None), 
-"body": __x_prop(__g_body, None), "classDefinitions": __x_prop(__g_classDefinitions, None), "declarePublic": __m_declarePublic, 
-"dump": __m_dump, "functionDefinitions": __x_prop(__g_functionDefinitions, None), "generatePython": __m_generatePython, 
-"parent": __x_prop(__g_parent, None), "parentFunction": __x_prop(__g_parentFunction, None), "referVar": __m_referVar, 
-"registerClassDefinition": __m_registerClassDefinition, "structList": __x_prop(__g_structList, None), 
+        __clsT = __x_dcls("GlobalElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": ("enableImplicitBooleanConversion", 
+"enableTupleSubscription"), "allocFunctionId": __m_allocFunctionId, "allowSuperCall": __x_prop(__g_allowSuperCall, None), 
+"allowThis": __x_prop(__g_allowThis, None), "body": __x_prop(__g_body, None), "classDefinitions": __x_prop(__g_classDefinitions, None), 
+"declarePublic": __m_declarePublic, "dump": __m_dump, "functionDefinitions": __x_prop(__g_functionDefinitions, None), 
+"generatePython": __m_generatePython, "parent": __x_prop(__g_parent, None), "parentFunction": __x_prop(__g_parentFunction, None), 
+"referVar": __m_referVar, "registerClassDefinition": __m_registerClassDefinition, "structList": __x_prop(__g_structList, None), 
 "theClass": __x_prop(__g_theClass, None), "theGlobal": __x_prop(__g_theGlobal, None), "typeName": __x_prop(__g_typeName, None), 
 "__init__": __m_GlobalElement})
         __cpm = __x_prmT(__clsT, __cpiT)
@@ -3417,31 +3418,31 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
     def __c_IfBlockElement(__cexT):
         def __g_typeName(this):
             return (u"ifgroup")
-        # end function __g_typeName (line 3418)
+        # end function __g_typeName (line 3419)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(IfElement, 1, False), ElementPattern(ElifElement, 0, True), ElementPattern(ElseElement, 
 1, True)])
-        # end function __g_structList (line 3422)
+        # end function __g_structList (line 3423)
 
         def __m_simplifyExpressions(this):
             def __fEK_(e, k, self):
                 e.checkStruct()
                 if __x_cb(__x_eq(k, 0)):
                     return
-                # end if (line 3430)
+                # end if (line 3431)
                 if __x_cb(__u_mcei.val):
                     __u_if2.val.append(e)
                     return
-                # end if (line 3433)
+                # end if (line 3434)
                 if __x_cb(__x_iof(e, ElseElement)):
                     e.simplifyExpressions()
                     return
-                # end if (line 3437)
+                # end if (line 3438)
                 if __x_cb(__x_not(e.complex)):
                     e.simplifyExpressions()
                     return
-                # end if (line 3441)
+                # end if (line 3442)
                 __u_mcei.val = True
                 __u_else2.val = ElseElement(None)
                 e.replaceWith(__u_else2.val)
@@ -3453,14 +3454,14 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
                 body2 = e.lastChild
                 elif2.append(cond2)
                 elif2.append(body2)
-            # end function <anonymous> (__fEK_) (line 3428)
+            # end function <anonymous> (__fEK_) (line 3429)
 
             __u_else2 = __x_var()
             __u_if2 = __x_var()
             __u_mcei = __x_var()
             if __x_cb(__cpm[this, "simplified"]):
                 raise InternalError((u"simplify if again"))
-            # end if (line 3461)
+            # end if (line 3462)
             __cpm[this, "simplified"] = True
             this.checkStruct()
             this.firstChild.simplifyExpressions()
@@ -3470,30 +3471,30 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
             this.forEachChild(__fEK_)
             if __x_cb(__u_mcei.val):
                 __u_else2.val.simplifyExpressions()
-            # end if (line 3471)
+            # end if (line 3472)
             this.checkStruct()
-        # end function __m_simplifyExpressions (line 3427)
+        # end function __m_simplifyExpressions (line 3428)
 
         def __m_generatePython(this, gen):
             def __fEM_(e, k, t):
                 e.generatePython(gen)
-            # end function <anonymous> (__fEM_) (line 3478)
+            # end function <anonymous> (__fEM_) (line 3479)
 
             sline = LineNumber()
             gen.logLineNumber(sline)
             this.forEachChild(__fEM_)
             gen.comment((u"end if (line %l)"), sline)
-        # end function __m_generatePython (line 3477)
+        # end function __m_generatePython (line 3478)
 
         def __m_IfBlockElement(this, range):
             __csu(this, range)
-        # end function __m_IfBlockElement (line 3488)
+        # end function __m_IfBlockElement (line 3489)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 3492)
+        # end static initializer __csi (line 3493)
 
         def __csu(this, *argv):
             # create the private field
@@ -3502,7 +3503,7 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
             __cpm[this, "simplified"] = False
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 3498)
+        # end instance initializer and super constructor __csu (line 3499)
 
         __cpiT = __x_dpif("IfBlockElement", {"__slots__": ("simplified",)})
         __clsT = __x_dcls("IfBlockElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "generatePython": __m_generatePython, 
@@ -3510,31 +3511,31 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
 "__init__": __m_IfBlockElement})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory IfBlockElement, __c_IfBlockElement (line 3417)
+    # end class factory IfBlockElement, __c_IfBlockElement (line 3418)
 
     def __c_IfElement(__cexT):
         def __g_typeName(this):
             return (u"if")
-        # end function __g_typeName (line 3516)
+        # end function __g_typeName (line 3517)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ConditionElement, 1, False), ElementPattern(BodyElement, 1, False)])
-        # end function __g_structList (line 3520)
+        # end function __g_structList (line 3521)
 
         def __m_checkStruct(this):
             if __x_cb(__x_not(__x_iof(this.parent, IfBlockElement))):
                 raise InternalError((u"malformed structure in IfElement (not in IfBlockElement)"))
-            # end if (line 3525)
+            # end if (line 3526)
             (super(__clsT, this)).checkStruct()
-        # end function __m_checkStruct (line 3524)
+        # end function __m_checkStruct (line 3525)
 
         def __g_theStatement(this):
             return this.parent.theStatement
-        # end function __g_theStatement (line 3531)
+        # end function __g_theStatement (line 3532)
 
         def __g_complex(this):
             return this.firstChild.complex
-        # end function __g_complex (line 3535)
+        # end function __g_complex (line 3536)
 
         def __m_simplifyExpressions(this):
             this.checkStruct()
@@ -3544,7 +3545,7 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
             cond.simplifyExpressions()
             body.simplifyExpressions()
             this.checkStruct()
-        # end function __m_simplifyExpressions (line 3539)
+        # end function __m_simplifyExpressions (line 3540)
 
         def __m_generatePython(this, ctx):
             cond = this.firstChild.firstChild
@@ -3557,133 +3558,133 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
             ctx.tab()
             body.generatePython(ctx)
             ctx.TAB()
-        # end function __m_generatePython (line 3549)
+        # end function __m_generatePython (line 3550)
 
         def __m_IfElement(this, range):
             __csu(this, range)
-        # end function __m_IfElement (line 3562)
+        # end function __m_IfElement (line 3563)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 3566)
+        # end static initializer __csi (line 3567)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 3572)
+        # end instance initializer and super constructor __csu (line 3573)
 
         __clsT = __x_dcls("IfElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "checkStruct": __m_checkStruct, 
 "complex": __x_prop(__g_complex, None), "generatePython": __m_generatePython, "simplifyExpressions": __m_simplifyExpressions, 
 "structList": __x_prop(__g_structList, None), "theStatement": __x_prop(__g_theStatement, None), "typeName": __x_prop(__g_typeName, None), 
 "__init__": __m_IfElement})
         return __clsT
-    # end class factory IfElement, __c_IfElement (line 3515)
+    # end class factory IfElement, __c_IfElement (line 3516)
 
     def __c_ImportElement(__cexT):
         def __g_typeName(this):
             return (u"import")
-        # end function __g_typeName (line 3586)
+        # end function __g_typeName (line 3587)
 
         def __m_checkStruct(this):
             if __x_cb(__x_not(__x_iof(this.parent, CallElement))):
                 raise InternalError((u"malformed structure in ImportElement (not in CallElement)"))
-            # end if (line 3591)
+            # end if (line 3592)
             (super(__clsT, this)).checkStruct()
-        # end function __m_checkStruct (line 3590)
+        # end function __m_checkStruct (line 3591)
 
         def __g_constantOnly(this):
             return False
-        # end function __g_constantOnly (line 3597)
+        # end function __g_constantOnly (line 3598)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             writer.write((u"__x_imp"), contchr)
-        # end function __m_writePython (line 3601)
+        # end function __m_writePython (line 3602)
 
         def __m_ImportElement(this, range):
             __csu(this, range)
-        # end function __m_ImportElement (line 3605)
+        # end function __m_ImportElement (line 3606)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 3609)
+        # end static initializer __csi (line 3610)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 3615)
+        # end instance initializer and super constructor __csu (line 3616)
 
         __clsT = __x_dcls("ImportElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "checkStruct": __m_checkStruct, 
 "constantOnly": __x_prop(__g_constantOnly, None), "typeName": __x_prop(__g_typeName, None), "writePython": __m_writePython, 
 "__init__": __m_ImportElement})
         return __clsT
-    # end class factory ImportElement, __c_ImportElement (line 3585)
+    # end class factory ImportElement, __c_ImportElement (line 3586)
 
     def __c_InstanceGroupElement(__cexT):
         def __g_typeName(this):
             return (u"instanceinit")
-        # end function __g_typeName (line 3628)
+        # end function __g_typeName (line 3629)
 
         def __g_allowThis(this):
             return this.parent.allowThis
-        # end function __g_allowThis (line 3632)
+        # end function __g_allowThis (line 3633)
 
         def __g_allowSuper(this):
             return this.parent.allowSuper
-        # end function __g_allowSuper (line 3636)
+        # end function __g_allowSuper (line 3637)
 
         def __g_allowSuperCall(this):
             return this.parent.allowSuperCall
-        # end function __g_allowSuperCall (line 3640)
+        # end function __g_allowSuperCall (line 3641)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(FunctionGroupElement, 1, False), ElementPattern(BodyElement, 1, False)])
-        # end function __g_structList (line 3644)
+        # end function __g_structList (line 3645)
 
         def __m_checkStruct(this):
             if __x_cb(__x_not(__x_iof(this.parent, ClassElement))):
                 raise InternalError((u"malformed structure in InstanceGroupElement (not in ClassElement)"))
-            # end if (line 3649)
+            # end if (line 3650)
             (super(__clsT, this)).checkStruct()
-        # end function __m_checkStruct (line 3648)
+        # end function __m_checkStruct (line 3649)
 
         def __g_functionDefinitions(this):
             this.checkStruct()
             e = this.firstChild
             return e
-        # end function __g_functionDefinitions (line 3655)
+        # end function __g_functionDefinitions (line 3656)
 
         def __g_body(this):
             this.checkStruct()
             e = this.lastChild
             return e
-        # end function __g_body (line 3661)
+        # end function __g_body (line 3662)
 
         def __m_registerFunctionDefinition(this, tag, range = (None)):
             raise InternalError((u"register function definition in class property initializer"))
-        # end function __m_registerFunctionDefinition (line 3667)
+        # end function __m_registerFunctionDefinition (line 3668)
 
         def __m_registerLocalVar(this, name, range = (None)):
             raise InternalError((u"register local variable in class property initializer"))
             return None
-        # end function __m_registerLocalVar (line 3671)
+        # end function __m_registerLocalVar (line 3672)
 
         def __m_referVar(this, name, range = (None)):
             return this.theClass.referVar(name, range)
-        # end function __m_referVar (line 3676)
+        # end function __m_referVar (line 3677)
 
         def __m_generatePython(this, gen):
             def __fFQ_(p, k, s):
                 if __x_cb(p.isPrivate):
                     __u_haspi.val = True
                     return False
-                # end if (line 3682)
-            # end function <anonymous> (__fFQ_) (line 3681)
+                # end if (line 3683)
+            # end function <anonymous> (__fFQ_) (line 3682)
 
             __u_haspi = __x_var()
             gen.blank()
@@ -3698,31 +3699,31 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
             if __x_cb(__u_haspi.val):
                 gen.comment((u"create the private field"))
                 gen.writeln((u"__cpm.create(this)"))
-            # end if (line 3698)
+            # end if (line 3699)
             gen.comment((u"initialize properties"))
             this.body.generatePython(gen)
             gen.comment((u"super"))
             gen.writeln((u"super(__clsT, this).__init__(*argv)"))
             gen.TAB()
             gen.comment((u"end instance initializer and super constructor __csu (line %l)"), sline)
-        # end function __m_generatePython (line 3680)
+        # end function __m_generatePython (line 3681)
 
         def __m_dump(this, ctx):
             (super(__clsT, this)).dump(ctx)
-        # end function __m_dump (line 3710)
+        # end function __m_dump (line 3711)
 
         def __m_InstanceGroupElement(this, instanceMembers):
             __csu(this, None)
             __cpm[this, "instanceMembers"] = instanceMembers
             this.append(FunctionGroupElement())
             this.append(BodyElement(None))
-        # end function __m_InstanceGroupElement (line 3714)
+        # end function __m_InstanceGroupElement (line 3715)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 3721)
+        # end static initializer __csi (line 3722)
 
         def __csu(this, *argv):
             # create the private field
@@ -3730,7 +3731,7 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 3727)
+        # end instance initializer and super constructor __csu (line 3728)
 
         __cpiT = __x_dpif("InstanceGroupElement", {"__slots__": ("instanceMembers",)})
         __clsT = __x_dcls("InstanceGroupElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
@@ -3741,34 +3742,34 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
 "structList": __x_prop(__g_structList, None), "typeName": __x_prop(__g_typeName, None), "__init__": __m_InstanceGroupElement})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory InstanceGroupElement, __c_InstanceGroupElement (line 3627)
+    # end class factory InstanceGroupElement, __c_InstanceGroupElement (line 3628)
 
     def __c_InstanceInitializerElement(__cexT):
         def __g_typeName(this):
             return (u"instanceprop")
-        # end function __g_typeName (line 3747)
+        # end function __g_typeName (line 3748)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ExpressionElement, 1, True)])
-        # end function __g_structList (line 3751)
+        # end function __g_structList (line 3752)
 
         def __m_checkStruct(this):
             if __x_cb(__x_not(__x_iof(this.theFunction, InstanceGroupElement))):
                 raise InternalError((u"malformed structure in InstanceInitializerElement (not in InstanceGroupElement)"))
-            # end if (line 3756)
+            # end if (line 3757)
             (super(__clsT, this)).checkStruct()
-        # end function __m_checkStruct (line 3755)
+        # end function __m_checkStruct (line 3756)
 
         def __g_isInitializer(this):
             this.checkStruct()
             return __x_ne(this.firstChild, None)
-        # end function __g_isInitializer (line 3762)
+        # end function __g_isInitializer (line 3763)
 
         def __m_declareVariable(this):
             this.checkStruct()
             this.theClass.registerProperty(__cpm[this, "attribute"].name, __cpm[this, "isPublic"], False, __cpm[this
 , "attribute"].range)
-        # end function __m_declareVariable (line 3767)
+        # end function __m_declareVariable (line 3768)
 
         def __m_simplifyExpressions(this):
             if __x_cb(this.isInitializer):
@@ -3778,26 +3779,26 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
                 aae.append(attr)
                 attr.append(ThisElement(None))
                 aae.append(this.firstChild)
-            # end if (line 3774)
+            # end if (line 3775)
             this.remove()
-        # end function __m_simplifyExpressions (line 3773)
+        # end function __m_simplifyExpressions (line 3774)
 
         def __m_dump(this, ctx):
             ctx.attr((u"attribute"), __cpm[this, "attribute"])
             (super(__clsT, this)).dump(ctx)
-        # end function __m_dump (line 3785)
+        # end function __m_dump (line 3786)
 
         def __m_InstanceInitializerElement(this, attribute, isPublic, range):
             __csu(this, range)
             __cpm[this, "isPublic"] = isPublic
             __cpm[this, "attribute"] = attribute
-        # end function __m_InstanceInitializerElement (line 3790)
+        # end function __m_InstanceInitializerElement (line 3791)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 3796)
+        # end static initializer __csi (line 3797)
 
         def __csu(this, *argv):
             # create the private field
@@ -3805,7 +3806,7 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 3802)
+        # end instance initializer and super constructor __csu (line 3803)
 
         __cpiT = __x_dpif("InstanceInitializerElement", {"__slots__": ("attribute", "isPublic")})
         __clsT = __x_dcls("InstanceInitializerElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
@@ -3814,29 +3815,29 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
 "__init__": __m_InstanceInitializerElement})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory InstanceInitializerElement, __c_InstanceInitializerElement (line 3746)
+    # end class factory InstanceInitializerElement, __c_InstanceInitializerElement (line 3747)
 
     def __c_ItemElement(__cexT):
         def __g_typeName(this):
             return (u"item")
-        # end function __g_typeName (line 3820)
+        # end function __g_typeName (line 3821)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ExpressionElement, 2, False)])
-        # end function __g_structList (line 3824)
+        # end function __g_structList (line 3825)
 
         def __m_simplifyExpressions(this):
             this.checkStruct()
             if __x_cb(__x_not(this.complex)):
                 return
-            # end if (line 3830)
+            # end if (line 3831)
             left = this.firstChild
             right = this.lastChild
             atel = left.replaceWithTemp()
             this.insertTempAssign(atel)
             right.simplifyExpressions()
             this.checkStruct()
-        # end function __m_simplifyExpressions (line 3828)
+        # end function __m_simplifyExpressions (line 3829)
 
         def __m_extractLeft(this):
             this.checkStruct()
@@ -3847,7 +3848,7 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
             ater = right.replaceWithTemp()
             this.insertTempAssign(ater)
             this.checkStruct()
-        # end function __m_extractLeft (line 3841)
+        # end function __m_extractLeft (line 3842)
 
         def __m_extractLeftAndDuplicate(this):
             this.checkStruct()
@@ -3863,7 +3864,7 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
             v.append(ater.getLeftElement())
             v.checkStruct()
             return v
-        # end function __m_extractLeftAndDuplicate (line 3852)
+        # end function __m_extractLeftAndDuplicate (line 3853)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             object = this.firstChild
@@ -3872,54 +3873,54 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
             writer.write((u"["), False)
             index.writePython(writer, (u"\\"), 0)
             writer.write((u"]"), contchr)
-        # end function __m_writePython (line 3868)
+        # end function __m_writePython (line 3869)
 
         def __m_ItemElement(this, range):
             __csu(this, range)
-        # end function __m_ItemElement (line 3877)
+        # end function __m_ItemElement (line 3878)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 3881)
+        # end static initializer __csi (line 3882)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 3887)
+        # end instance initializer and super constructor __csu (line 3888)
 
         __clsT = __x_dcls("ItemElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "extractLeft": __m_extractLeft, 
 "extractLeftAndDuplicate": __m_extractLeftAndDuplicate, "simplifyExpressions": __m_simplifyExpressions, 
 "structList": __x_prop(__g_structList, None), "typeName": __x_prop(__g_typeName, None), "writePython": __m_writePython, 
 "__init__": __m_ItemElement})
         return __clsT
-    # end class factory ItemElement, __c_ItemElement (line 3819)
+    # end class factory ItemElement, __c_ItemElement (line 3820)
 
     def __c_KeyValueElement(__cexT):
         def __g_typeName(this):
             return (u"kvpair")
-        # end function __g_typeName (line 3901)
+        # end function __g_typeName (line 3902)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ExpressionElement, 2, False)])
-        # end function __g_structList (line 3905)
+        # end function __g_structList (line 3906)
 
         def __m_checkStruct(this):
             if __x_cb(__x_not(__x_iof(this.parent, ObjectLiteralElement))):
                 raise InternalError((u"malformed structure in KeyValueElement (not in ObjectLiteralElement)"))
-            # end if (line 3910)
+            # end if (line 3911)
             (super(__clsT, this)).checkStruct()
-        # end function __m_checkStruct (line 3909)
+        # end function __m_checkStruct (line 3910)
 
         def __m_simplifyExpressions(this):
             raise InternalError((u"called simplifyExpressions of KeyValueElement"))
-        # end function __m_simplifyExpressions (line 3916)
+        # end function __m_simplifyExpressions (line 3917)
 
         def __m_replaceWithTemp(this, optional = (True)):
             raise InternalError((u"called replaceWithTemp of KeyValueElement"))
-        # end function __m_replaceWithTemp (line 3920)
+        # end function __m_replaceWithTemp (line 3921)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             key = this.firstChild
@@ -3927,39 +3928,39 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
             key.writePython(writer, False, 11)
             writer.write((u": "), (u""))
             value.writePython(writer, False, 11)
-        # end function __m_writePython (line 3924)
+        # end function __m_writePython (line 3925)
 
         def __m_KeyValueElement(this, range):
             __csu(this, range)
-        # end function __m_KeyValueElement (line 3932)
+        # end function __m_KeyValueElement (line 3933)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 3936)
+        # end static initializer __csi (line 3937)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 3942)
+        # end instance initializer and super constructor __csu (line 3943)
 
         __clsT = __x_dcls("KeyValueElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), 
 "checkStruct": __m_checkStruct, "replaceWithTemp": __m_replaceWithTemp, "simplifyExpressions": __m_simplifyExpressions, 
 "structList": __x_prop(__g_structList, None), "typeName": __x_prop(__g_typeName, None), "writePython": __m_writePython, 
 "__init__": __m_KeyValueElement})
         return __clsT
-    # end class factory KeyValueElement, __c_KeyValueElement (line 3900)
+    # end class factory KeyValueElement, __c_KeyValueElement (line 3901)
 
     def __c_MagicCallElement(__cexT):
         def __g_typeName(this):
             return (u"magiccall")
-        # end function __g_typeName (line 3956)
+        # end function __g_typeName (line 3957)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ExpressionElement, 1, False), ElementPattern(ArgumentElement, 1, False)])
-        # end function __g_structList (line 3960)
+        # end function __g_structList (line 3961)
 
         def __m_functionalize(this):
             this.checkStruct()
@@ -3972,12 +3973,12 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
             self = this.firstChild
             argv.prepend(self)
             cc.append(argv)
-        # end function __m_functionalize (line 3964)
+        # end function __m_functionalize (line 3965)
 
         def __m_dump(this, ctx):
             ctx.attr((u"name"), __cpm[this, "name"])
             (super(__clsT, this)).dump(ctx)
-        # end function __m_dump (line 3977)
+        # end function __m_dump (line 3978)
 
         def __m_MagicCallElement(this, name, range):
             __csu(this, range)
@@ -3987,15 +3988,15 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
 (u"reduce"), (u"shift"), (u"slice"), (u"some"), (u"splice"), (u"take"), (u"unshift")], True)
             if __x_cb(__x_not(allowFns.has(name))):
                 raise CompileError((u"@%s is not a valid magic method"), range, name)
-            # end if (line 3988)
+            # end if (line 3989)
             __cpm[this, "name"] = name
-        # end function __m_MagicCallElement (line 3982)
+        # end function __m_MagicCallElement (line 3983)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 3994)
+        # end static initializer __csi (line 3995)
 
         def __csu(this, *argv):
             # create the private field
@@ -4003,7 +4004,7 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4000)
+        # end instance initializer and super constructor __csu (line 4001)
 
         __cpiT = __x_dpif("MagicCallElement", {"__slots__": ("name",)})
         __clsT = __x_dcls("MagicCallElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), 
@@ -4011,88 +4012,88 @@ uce, __x_at_join, __x_at_bind, __x_at_apply, __x_at_length, __x_at_isEmpty, __x_
 "__init__": __m_MagicCallElement})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory MagicCallElement, __c_MagicCallElement (line 3955)
+    # end class factory MagicCallElement, __c_MagicCallElement (line 3956)
 
     def __c_MethodElement(__cexT):
         def __g_structList(this):
             return ArrayList([ElementPattern(FunctionGroupElement, 1, False), ElementPattern(MethodParameterGroupElement, 
 1, False), ElementPattern(BodyElement, 1, False)])
-        # end function __g_structList (line 4017)
+        # end function __g_structList (line 4018)
 
         def __g_allowThis(this):
             tag = this.tag
             return __x_cb(this.parent.allowThis) and __x_not(tag.isStatic)
-        # end function __g_allowThis (line 4022)
+        # end function __g_allowThis (line 4023)
 
         def __g_allowSuper(this):
             tag = this.tag
             return __x_cb(this.parent.allowSuper) and __x_not(tag.isStatic)
-        # end function __g_allowSuper (line 4027)
+        # end function __g_allowSuper (line 4028)
 
         def __g_allowSuperCall(this):
             tag = this.tag
             return __x_cb(this.isConstructor) and this.parent.allowSuperCall
-        # end function __g_allowSuperCall (line 4032)
+        # end function __g_allowSuperCall (line 4033)
 
         def __g_isConstructor(this):
             tag = this.tag
             return __x_cb(__x_not(tag.isStatic)) and __x_eq(tag.name, this.theClass.tag.name)
-        # end function __g_isConstructor (line 4037)
+        # end function __g_isConstructor (line 4038)
 
         def __m_declareVariable(this):
             tag = this.tag
             if __x_cb(this.isConstructor):
                 if __x_cb(__x_not(tag.isPublic)):
                     raise CompileError((u"Class constructor may not be a private method"))
-                # end if (line 4045)
+                # end if (line 4046)
                 if __x_cb(tag.isAccessor):
                     raise CompileError((u"Class constructor may not be an accessor"))
-                # end if (line 4048)
+                # end if (line 4049)
             else:
                 this.parentFunction.registerFunctionDefinition(this.tag, this.tag.range)
-            # end if (line 4044)
+            # end if (line 4045)
             (super(__clsT, this)).declareVariable()
-        # end function __m_declareVariable (line 4042)
+        # end function __m_declareVariable (line 4043)
 
         def __m_meetSuper(this, range):
             if __x_cb(__x_not(this.allowSuperCall)):
                 return
-            # end if (line 4058)
+            # end if (line 4059)
             if __x_cb(__cpm[this, "smet"]):
                 raise CompileError((u"Super constructor may only be called once"), range)
-            # end if (line 4061)
+            # end if (line 4062)
             __cpm[this, "smet"] = True
-        # end function __m_meetSuper (line 4057)
+        # end function __m_meetSuper (line 4058)
 
         def __m_meetReturnOrThis(this, range):
             if __x_cb(__x_not(this.allowSuperCall)):
                 return
-            # end if (line 4068)
+            # end if (line 4069)
             if __x_cb(__x_not(__cpm[this, "smet"])):
                 raise CompileError((u"Super statement cannot occur after a this, super or return statement"), range)
-            # end if (line 4071)
-        # end function __m_meetReturnOrThis (line 4067)
+            # end if (line 4072)
+        # end function __m_meetReturnOrThis (line 4068)
 
         def __m_checkVariables(this):
             (super(__clsT, this)).checkVariables()
             if __x_cb(__x_cb(__x_not(__cpm[this, "smet"])) and this.allowSuperCall):
                 raise CompileError((u"Must call super constructor in derived class before returning from derived constructor"), 
 this.range)
-            # end if (line 4078)
-        # end function __m_checkVariables (line 4076)
+            # end if (line 4079)
+        # end function __m_checkVariables (line 4077)
 
         def __m_referVar(this, name, range = (None)):
             v = this.getLocal(name)
             if __x_cb(__x_ne(v, None)):
                 return v
-            # end if (line 4086)
+            # end if (line 4087)
             if __x_cb(__x_cb(__x_ne(this.tag.name, None)) and __x_eq(this.tag.name, name)):
                 if __x_cb(__x_not(this.isConstructor)):
                     raise CompileError((u"'this' is required for referring the method itself"), range)
-                # end if (line 4090)
-            # end if (line 4089)
+                # end if (line 4091)
+            # end if (line 4090)
             return this.parentFunction.referVar(name, range)
-        # end function __m_referVar (line 4084)
+        # end function __m_referVar (line 4085)
 
         def __m_functionalize(this):
             if __x_cb(__x_cb(this.isConstructor) and __x_not(this.allowSuperCall)):
@@ -4102,9 +4103,9 @@ this.range)
                 expr.append(ce)
                 ce.append(SuperElement(None))
                 ce.append(ArgumentElement(None))
-            # end if (line 4098)
+            # end if (line 4099)
             (super(__clsT, this)).functionalize()
-        # end function __m_functionalize (line 4097)
+        # end function __m_functionalize (line 4098)
 
         def __m_MethodElement(this, name, methodType, isStatic, isPublic, tagRange, range):
             __csu(this, range)
@@ -4113,13 +4114,13 @@ this.range)
             this.append(FunctionGroupElement())
             this.append(MethodParameterGroupElement(tag))
             this.append(BodyElement(None))
-        # end function __m_MethodElement (line 4109)
+        # end function __m_MethodElement (line 4110)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4118)
+        # end static initializer __csi (line 4119)
 
         def __csu(this, *argv):
             # create the private field
@@ -4128,7 +4129,7 @@ this.range)
             __cpm[this, "smet"] = False
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4124)
+        # end instance initializer and super constructor __csu (line 4125)
 
         __cpiT = __x_dpif("MethodElement", {"__slots__": ("smet",)})
         __clsT = __x_dcls("MethodElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "allowSuper": __x_prop(__g_allowSuper, None), 
@@ -4138,104 +4139,104 @@ this.range)
 "__init__": __m_MethodElement})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory MethodElement, __c_MethodElement (line 4016)
+    # end class factory MethodElement, __c_MethodElement (line 4017)
 
     def __c_MethodGroupElement(__cexT):
         def __g_typeName(this):
             return (u"methods")
-        # end function __g_typeName (line 4144)
+        # end function __g_typeName (line 4145)
 
         def __g_allowSuperCall(this):
             return this.parent.allowSuperCall
-        # end function __g_allowSuperCall (line 4148)
+        # end function __g_allowSuperCall (line 4149)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(MethodElement, 0, True)])
-        # end function __g_structList (line 4152)
+        # end function __g_structList (line 4153)
 
         def __m_MethodGroupElement(this):
             __csu(this)
-        # end function __m_MethodGroupElement (line 4156)
+        # end function __m_MethodGroupElement (line 4157)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4160)
+        # end static initializer __csi (line 4161)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4166)
+        # end instance initializer and super constructor __csu (line 4167)
 
         __clsT = __x_dcls("MethodGroupElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 ), "allowSuperCall": __x_prop(__g_allowSuperCall, None), "structList": __x_prop(__g_structList, None), 
 "typeName": __x_prop(__g_typeName, None), "__init__": __m_MethodGroupElement})
         return __clsT
-    # end class factory MethodGroupElement, __c_MethodGroupElement (line 4143)
+    # end class factory MethodGroupElement, __c_MethodGroupElement (line 4144)
 
     def __c_ParameterGroupElement(__cexT):
         def __g_typeName(this):
             return (u"params")
-        # end function __g_typeName (line 4179)
+        # end function __g_typeName (line 4180)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ParameterElement, 0, True), ElementPattern(ParameterAssignElement, 0, 
 True), ElementPattern(RestParameterElement, 0, True)])
-        # end function __g_structList (line 4183)
+        # end function __g_structList (line 4184)
 
         def __m_generatePython(this, ctx):
             def __fI0_(e, k, s):
                 e.generateRenameAssignment(ctx)
-            # end function <anonymous> (__fI0_) (line 4189)
+            # end function <anonymous> (__fI0_) (line 4190)
 
             this.checkStruct()
             this.forEachChild(__fI0_)
-        # end function __m_generatePython (line 4188)
+        # end function __m_generatePython (line 4189)
 
         def __m_toPrameterList(this, writer, contchr, parentType = (0)):
             def __fI2_(e, k, s):
                 if __x_cb(__u_o.val):
                     writer.write((u", "), (u""))
-                # end if (line 4199)
+                # end if (line 4200)
                 e.writePython(writer, (u""))
                 __u_o.val = True
-            # end function <anonymous> (__fI2_) (line 4198)
+            # end function <anonymous> (__fI2_) (line 4199)
 
             __u_o = __x_var()
             __u_o.val = False
             this.forEachChild(__fI2_)
-        # end function __m_toPrameterList (line 4197)
+        # end function __m_toPrameterList (line 4198)
 
         def __m_ParameterGroupElement(this):
             __csu(this, None)
-        # end function __m_ParameterGroupElement (line 4211)
+        # end function __m_ParameterGroupElement (line 4212)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4215)
+        # end static initializer __csi (line 4216)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4221)
+        # end instance initializer and super constructor __csu (line 4222)
 
         __clsT = __x_dcls("ParameterGroupElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 ), "generatePython": __m_generatePython, "structList": __x_prop(__g_structList, None), "toPrameterList": __m_toPrameterList, 
 "typeName": __x_prop(__g_typeName, None), "__init__": __m_ParameterGroupElement})
         return __clsT
-    # end class factory ParameterGroupElement, __c_ParameterGroupElement (line 4178)
+    # end class factory ParameterGroupElement, __c_ParameterGroupElement (line 4179)
 
     def __c_MethodParameterGroupElement(__cexT):
         def __m_declareVariable(this):
             def __fI8_(p, k, s):
                 __r0 = __u_pcnt.val
                 __u_pcnt.val = __x_inc(__r0)
-            # end function <anonymous> (__fI8_) (line 4235)
+            # end function <anonymous> (__fI8_) (line 4236)
 
             __u_pcnt = __x_var()
             tag = __cpm[this, "tag"]
@@ -4243,33 +4244,33 @@ True), ElementPattern(RestParameterElement, 0, True)])
             this.forEachChild(__fI8_)
             if __x_cb(__x_cb(tag.isSetter) and __x_ne(__u_pcnt.val, 1)):
                 raise CompileError((u"Setter must have exactly one formal parameter"), this.range)
-            # end if (line 4244)
+            # end if (line 4245)
             if __x_cb(__x_cb(__x_cb(tag.isAccessor) and __x_not(tag.isSetter)) and __x_ne(__u_pcnt.val, 0)):
                 raise CompileError((u"Getter must not have any formal parameters"), this.range)
-            # end if (line 4247)
+            # end if (line 4248)
             (super(__clsT, this)).declareVariable()
-        # end function __m_declareVariable (line 4234)
+        # end function __m_declareVariable (line 4235)
 
         def __m_toPrameterList(this, writer, contchr, parentType = (0)):
             def __fIA_(e, k, s):
                 writer.write((u", "), (u""))
                 e.writePython(writer, (u""))
-            # end function <anonymous> (__fIA_) (line 4254)
+            # end function <anonymous> (__fIA_) (line 4255)
 
             writer.write((u"this"), (u""))
             this.forEachChild(__fIA_)
-        # end function __m_toPrameterList (line 4253)
+        # end function __m_toPrameterList (line 4254)
 
         def __m_MethodParameterGroupElement(this, tag):
             __csu(this)
             __cpm[this, "tag"] = tag
-        # end function __m_MethodParameterGroupElement (line 4263)
+        # end function __m_MethodParameterGroupElement (line 4264)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4268)
+        # end static initializer __csi (line 4269)
 
         def __csu(this, *argv):
             # create the private field
@@ -4277,180 +4278,180 @@ True), ElementPattern(RestParameterElement, 0, True)])
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4274)
+        # end instance initializer and super constructor __csu (line 4275)
 
         __cpiT = __x_dpif("MethodParameterGroupElement", {"__slots__": ("tag",)})
         __clsT = __x_dcls("MethodParameterGroupElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 ), "declareVariable": __m_declareVariable, "toPrameterList": __m_toPrameterList, "__init__": __m_MethodParameterGroupElement})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory MethodParameterGroupElement, __c_MethodParameterGroupElement (line 4233)
+    # end class factory MethodParameterGroupElement, __c_MethodParameterGroupElement (line 4234)
 
     def __c_NotOperatorElement(__cexT):
         def __g_typeName(this):
             return (u"not")
-        # end function __g_typeName (line 4290)
+        # end function __g_typeName (line 4291)
 
         def __g_constantOnly(this):
             return this.firstChild.constantOnly
-        # end function __g_constantOnly (line 4294)
+        # end function __g_constantOnly (line 4295)
 
         def __g_tempVarOnly(this):
             return this.firstChild.tempVarOnly
-        # end function __g_tempVarOnly (line 4298)
+        # end function __g_tempVarOnly (line 4299)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ExpressionElement, 1, False)])
-        # end function __g_structList (line 4302)
+        # end function __g_structList (line 4303)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             p = parentType >= 2
             dst = this.firstChild
             if __x_cb(p):
                 writer.write((u"("), False)
-            # end if (line 4309)
+            # end if (line 4310)
             writer.write((u"not "), (u"") if __x_cb(p) else contchr)
             dst.writePython(writer, (u"") if __x_cb(p) else contchr, 4)
             if __x_cb(p):
                 writer.write((u")"), contchr)
-            # end if (line 4314)
-        # end function __m_writePython (line 4306)
+            # end if (line 4315)
+        # end function __m_writePython (line 4307)
 
         def __m_NotOperatorElement(this, range):
             __csu(this, range)
-        # end function __m_NotOperatorElement (line 4319)
+        # end function __m_NotOperatorElement (line 4320)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4323)
+        # end static initializer __csi (line 4324)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4329)
+        # end instance initializer and super constructor __csu (line 4330)
 
         __clsT = __x_dcls("NotOperatorElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 ), "constantOnly": __x_prop(__g_constantOnly, None), "structList": __x_prop(__g_structList, None), "tempVarOnly": __x_prop(__g_tempVarOnly, None), 
 "typeName": __x_prop(__g_typeName, None), "writePython": __m_writePython, "__init__": __m_NotOperatorElement})
         return __clsT
-    # end class factory NotOperatorElement, __c_NotOperatorElement (line 4289)
+    # end class factory NotOperatorElement, __c_NotOperatorElement (line 4290)
 
     def __c_NullLiteralElement(__cexT):
         def __g_typeName(this):
             return (u"null")
-        # end function __g_typeName (line 4342)
+        # end function __g_typeName (line 4343)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             writer.write((u"None"), contchr)
-        # end function __m_writePython (line 4346)
+        # end function __m_writePython (line 4347)
 
         def __m_NullLiteralElement(this, range):
             __csu(this, range)
-        # end function __m_NullLiteralElement (line 4350)
+        # end function __m_NullLiteralElement (line 4351)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4354)
+        # end static initializer __csi (line 4355)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4360)
+        # end instance initializer and super constructor __csu (line 4361)
 
         __clsT = __x_dcls("NullLiteralElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 ), "typeName": __x_prop(__g_typeName, None), "writePython": __m_writePython, "__init__": __m_NullLiteralElement})
         return __clsT
-    # end class factory NullLiteralElement, __c_NullLiteralElement (line 4341)
+    # end class factory NullLiteralElement, __c_NullLiteralElement (line 4342)
 
     def __c_NullishCheckElement(__cexT):
         def __g_typeName(this):
             return (u"isnullish")
-        # end function __g_typeName (line 4372)
+        # end function __g_typeName (line 4373)
 
         def __g_constantOnly(this):
             return this.firstChild.constantOnly
-        # end function __g_constantOnly (line 4376)
+        # end function __g_constantOnly (line 4377)
 
         def __g_tempVarOnly(this):
             return this.firstChild.tempVarOnly
-        # end function __g_tempVarOnly (line 4380)
+        # end function __g_tempVarOnly (line 4381)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ExpressionElement, 1, False)])
-        # end function __g_structList (line 4384)
+        # end function __g_structList (line 4385)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             p = parentType >= 3
             dst = this.firstChild
             if __x_cb(p):
                 writer.write((u"("), False)
-            # end if (line 4391)
+            # end if (line 4392)
             writer.write((u"None is "), (u"") if __x_cb(p) else contchr)
             dst.writePython(writer, (u"") if __x_cb(p) else contchr, 4)
             if __x_cb(p):
                 writer.write((u")"), contchr)
-            # end if (line 4396)
-        # end function __m_writePython (line 4388)
+            # end if (line 4397)
+        # end function __m_writePython (line 4389)
 
         def __m_NullishCheckElement(this, range):
             __csu(this, range)
-        # end function __m_NullishCheckElement (line 4401)
+        # end function __m_NullishCheckElement (line 4402)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4405)
+        # end static initializer __csi (line 4406)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4411)
+        # end instance initializer and super constructor __csu (line 4412)
 
         __clsT = __x_dcls("NullishCheckElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 ), "constantOnly": __x_prop(__g_constantOnly, None), "structList": __x_prop(__g_structList, None), "tempVarOnly": __x_prop(__g_tempVarOnly, None), 
 "typeName": __x_prop(__g_typeName, None), "writePython": __m_writePython, "__init__": __m_NullishCheckElement})
         return __clsT
-    # end class factory NullishCheckElement, __c_NullishCheckElement (line 4371)
+    # end class factory NullishCheckElement, __c_NullishCheckElement (line 4372)
 
     def __c_NumberLiteralElement(__cexT):
         def __g_typeName(this):
             return (u"real")
-        # end function __g_typeName (line 4424)
+        # end function __g_typeName (line 4425)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             if __x_cb(parentType >= 12):
                 writer.write((u"("), False)
-            # end if (line 4429)
+            # end if (line 4430)
             writer.write(__cpm[this, "source"], False)
             if __x_cb(parentType >= 12):
                 writer.write((u")"), False)
-            # end if (line 4433)
-        # end function __m_writePython (line 4428)
+            # end if (line 4434)
+        # end function __m_writePython (line 4429)
 
         def __m_dump(this, ctx):
             ctx.attr((u"source"), __cpm[this, "source"])
             (super(__clsT, this)).dump(ctx)
-        # end function __m_dump (line 4438)
+        # end function __m_dump (line 4439)
 
         def __m_NumberLiteralElement(this, value, source, range):
             __csu(this, range)
             __cpm[this, "value"] = value
             __cpm[this, "source"] = source
-        # end function __m_NumberLiteralElement (line 4443)
+        # end function __m_NumberLiteralElement (line 4444)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4449)
+        # end static initializer __csi (line 4450)
 
         def __csu(this, *argv):
             # create the private field
@@ -4458,35 +4459,35 @@ True), ElementPattern(RestParameterElement, 0, True)])
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4455)
+        # end instance initializer and super constructor __csu (line 4456)
 
         __cpiT = __x_dpif("NumberLiteralElement", {"__slots__": ("source", "value")})
         __clsT = __x_dcls("NumberLiteralElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 ), "dump": __m_dump, "typeName": __x_prop(__g_typeName, None), "writePython": __m_writePython, "__init__": __m_NumberLiteralElement})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory NumberLiteralElement, __c_NumberLiteralElement (line 4423)
+    # end class factory NumberLiteralElement, __c_NumberLiteralElement (line 4424)
 
     def __c_ObjectLiteralElement(__cexT):
         def __g_typeName(this):
             return (u"object")
-        # end function __g_typeName (line 4471)
+        # end function __g_typeName (line 4472)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(KeyValueElement, 0, True)])
-        # end function __g_structList (line 4475)
+        # end function __g_structList (line 4476)
 
         def __m_simplifyExpressions(this):
             def __fJH_(m, k, s):
                 if __x_cb(m.complex):
                     __u_lc.val = k
-                # end if (line 4481)
-            # end function <anonymous> (__fJH_) (line 4480)
+                # end if (line 4482)
+            # end function <anonymous> (__fJH_) (line 4481)
 
             def __fJI_(m, k, s):
                 if __x_cb(k > __u_lc.val):
                     return False
-                # end if (line 4487)
+                # end if (line 4488)
                 m.checkStruct()
                 key = m.firstChild
                 value = m.lastChild
@@ -4494,7 +4495,7 @@ True), ElementPattern(RestParameterElement, 0, True)])
                 this.insertTempAssign(ate)
                 tas = value.replaceWithTemp()
                 this.insertTempAssign(tas)
-            # end function <anonymous> (__fJI_) (line 4486)
+            # end function <anonymous> (__fJI_) (line 4487)
 
             __u_lc = __x_var()
             this.checkStruct()
@@ -4502,51 +4503,51 @@ True), ElementPattern(RestParameterElement, 0, True)])
             this.forEachChild(__fJH_)
             this.forEachChild(__fJI_)
             this.checkStruct()
-        # end function __m_simplifyExpressions (line 4479)
+        # end function __m_simplifyExpressions (line 4480)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             def __fJK_(m, k, s):
                 if __x_cb(k > 0):
                     writer.write((u", "), (u""))
-                # end if (line 4509)
+                # end if (line 4510)
                 m.writePython(writer, False)
-            # end function <anonymous> (__fJK_) (line 4508)
+            # end function <anonymous> (__fJK_) (line 4509)
 
             writer.write((u"({"), (u""))
             this.forEachChild(__fJK_)
             writer.write((u"})"), contchr)
-        # end function __m_writePython (line 4507)
+        # end function __m_writePython (line 4508)
 
         def __m_ObjectLiteralElement(this, range):
             __csu(this, range)
-        # end function __m_ObjectLiteralElement (line 4520)
+        # end function __m_ObjectLiteralElement (line 4521)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4524)
+        # end static initializer __csi (line 4525)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4530)
+        # end instance initializer and super constructor __csu (line 4531)
 
         __clsT = __x_dcls("ObjectLiteralElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 ), "simplifyExpressions": __m_simplifyExpressions, "structList": __x_prop(__g_structList, None), "typeName": __x_prop(__g_typeName, None), 
 "writePython": __m_writePython, "__init__": __m_ObjectLiteralElement})
         return __clsT
-    # end class factory ObjectLiteralElement, __c_ObjectLiteralElement (line 4470)
+    # end class factory ObjectLiteralElement, __c_ObjectLiteralElement (line 4471)
 
     def __c_ParameterAssignElement(__cexT):
         def __g_typeName(this):
             return (u"optparam")
-        # end function __g_typeName (line 4543)
+        # end function __g_typeName (line 4544)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ParameterElement, 1, False), ElementPattern(ExpressionElement, 1, False)])
-        # end function __g_structList (line 4547)
+        # end function __g_structList (line 4548)
 
         def __m_checkVariables(this):
             p = this.firstChild
@@ -4555,8 +4556,8 @@ True), ElementPattern(RestParameterElement, 0, True)])
             v.checkVariables()
             if __x_cb(__x_cb(v.complex) or __x_not(v.constantOnly)):
                 raise CompileError((u"Default parameter must be constant"), v.range)
-            # end if (line 4556)
-        # end function __m_checkVariables (line 4551)
+            # end if (line 4557)
+        # end function __m_checkVariables (line 4552)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             p = this.firstChild
@@ -4566,83 +4567,83 @@ True), ElementPattern(RestParameterElement, 0, True)])
             writer.write((u"("), False)
             v.writePython(writer, (u""))
             writer.write((u")"), False)
-        # end function __m_writePython (line 4561)
+        # end function __m_writePython (line 4562)
 
         def __m_generateRenameAssignment(this, ctx):
             p = this.firstChild
             p.generateRenameAssignment(ctx)
-        # end function __m_generateRenameAssignment (line 4571)
+        # end function __m_generateRenameAssignment (line 4572)
 
         def __m_ParameterAssignElement(this, range):
             __csu(this, range)
-        # end function __m_ParameterAssignElement (line 4576)
+        # end function __m_ParameterAssignElement (line 4577)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4580)
+        # end static initializer __csi (line 4581)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4586)
+        # end instance initializer and super constructor __csu (line 4587)
 
         __clsT = __x_dcls("ParameterAssignElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 ), "checkVariables": __m_checkVariables, "generateRenameAssignment": __m_generateRenameAssignment, "structList": __x_prop(__g_structList, None), 
 "typeName": __x_prop(__g_typeName, None), "writePython": __m_writePython, "__init__": __m_ParameterAssignElement})
         return __clsT
-    # end class factory ParameterAssignElement, __c_ParameterAssignElement (line 4542)
+    # end class factory ParameterAssignElement, __c_ParameterAssignElement (line 4543)
 
     def __c_ParameterElement(__cexT):
         def __g_typeName(this):
             return (u"param")
-        # end function __g_typeName (line 4599)
+        # end function __g_typeName (line 4600)
 
         def __m_declareVariable(this):
             __cpm[this, "target"] = this.theFunction.registerLocalVar(__cpm[this, "source"], this.range)
-        # end function __m_declareVariable (line 4603)
+        # end function __m_declareVariable (line 4604)
 
         def __m_checkVariables(this):
             __cpm[this, "target"].write(this.theFunction, this.range)
-        # end function __m_checkVariables (line 4607)
+        # end function __m_checkVariables (line 4608)
 
         def __m_simplifyExpressions(this):
             pass
-        # end function __m_simplifyExpressions (line 4611)
+        # end function __m_simplifyExpressions (line 4612)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             writer.write(__cpm[this, "target"].toOriginPython(), False)
-        # end function __m_writePython (line 4615)
+        # end function __m_writePython (line 4616)
 
         def __m_generateRenameAssignment(this, ctx):
             if __x_cb(__x_not(__cpm[this, "target"].closure)):
                 return
-            # end if (line 4620)
+            # end if (line 4621)
             writer = LineWriter()
             writer.write(__cpm[this, "target"].toPython(), False)
             writer.write((u" = "), False)
             writer.write(__cpm[this, "target"].toOriginPython(), False)
             writer.finalize(ctx)
-        # end function __m_generateRenameAssignment (line 4619)
+        # end function __m_generateRenameAssignment (line 4620)
 
         def __m_dump(this, ctx):
             ctx.attr((u"name"), __cpm[this, "source"])
             ctx.attr((u"var"), __cpm[this, "target"])
             (super(__clsT, this)).dump(ctx)
-        # end function __m_dump (line 4630)
+        # end function __m_dump (line 4631)
 
         def __m_ParameterElement(this, source, range):
             __csu(this, range)
             __cpm[this, "source"] = source
-        # end function __m_ParameterElement (line 4636)
+        # end function __m_ParameterElement (line 4637)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4641)
+        # end static initializer __csi (line 4642)
 
         def __csu(this, *argv):
             # create the private field
@@ -4651,7 +4652,7 @@ True), ElementPattern(RestParameterElement, 0, True)])
             __cpm[this, "target"] = None
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4647)
+        # end instance initializer and super constructor __csu (line 4648)
 
         __cpiT = __x_dpif("ParameterElement", {"__slots__": ("source", "target")})
         __clsT = __x_dcls("ParameterElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), 
@@ -4660,209 +4661,209 @@ True), ElementPattern(RestParameterElement, 0, True)])
 "__init__": __m_ParameterElement})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory ParameterElement, __c_ParameterElement (line 4598)
+    # end class factory ParameterElement, __c_ParameterElement (line 4599)
 
     def __c_RestParameterElement(__cexT):
         def __g_typeName(this):
             return (u"rest")
-        # end function __g_typeName (line 4666)
+        # end function __g_typeName (line 4667)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ParameterElement, 1, False)])
-        # end function __g_structList (line 4670)
+        # end function __g_structList (line 4671)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             p = this.firstChild
             writer.write((u"*"), False)
             p.writePython(writer, False)
-        # end function __m_writePython (line 4674)
+        # end function __m_writePython (line 4675)
 
         def __m_generateRenameAssignment(this, ctx):
             this.checkStruct()
             p = this.firstChild
             p.generateRenameAssignment(ctx)
-        # end function __m_generateRenameAssignment (line 4680)
+        # end function __m_generateRenameAssignment (line 4681)
 
         def __m_RestParameterElement(this, range):
             __csu(this, range)
-        # end function __m_RestParameterElement (line 4686)
+        # end function __m_RestParameterElement (line 4687)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4690)
+        # end static initializer __csi (line 4691)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4696)
+        # end instance initializer and super constructor __csu (line 4697)
 
         __clsT = __x_dcls("RestParameterElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 ), "generateRenameAssignment": __m_generateRenameAssignment, "structList": __x_prop(__g_structList, None), 
 "typeName": __x_prop(__g_typeName, None), "writePython": __m_writePython, "__init__": __m_RestParameterElement})
         return __clsT
-    # end class factory RestParameterElement, __c_RestParameterElement (line 4665)
+    # end class factory RestParameterElement, __c_RestParameterElement (line 4666)
 
     def __c_ReturnElement(__cexT):
         def __g_typeName(this):
             return (u"return")
-        # end function __g_typeName (line 4709)
+        # end function __g_typeName (line 4710)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ExpressionElement, 1, True)])
-        # end function __g_structList (line 4713)
+        # end function __g_structList (line 4714)
 
         def __m_checkVariables(this):
             fn = this.theFunction
             if __x_cb(__x_iof(fn, MethodElement)):
                 fn.meetReturnOrThis(this.range)
-            # end if (line 4719)
+            # end if (line 4720)
             (super(__clsT, this)).checkVariables()
-        # end function __m_checkVariables (line 4717)
+        # end function __m_checkVariables (line 4718)
 
         def __m_generatePython(this, ctx):
             right = this.lastChild
             if __x_cb(__x_eq(right, None)):
                 ctx.writeln((u"return"))
                 return
-            # end if (line 4727)
+            # end if (line 4728)
             writer = LineWriter()
             writer.write((u"return "), False)
             right.writePython(writer, (u"\\"))
             writer.finalize(ctx)
-        # end function __m_generatePython (line 4725)
+        # end function __m_generatePython (line 4726)
 
         def __m_ReturnElement(this, range):
             __csu(this, range)
-        # end function __m_ReturnElement (line 4737)
+        # end function __m_ReturnElement (line 4738)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4741)
+        # end static initializer __csi (line 4742)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4747)
+        # end instance initializer and super constructor __csu (line 4748)
 
         __clsT = __x_dcls("ReturnElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "checkVariables": __m_checkVariables, 
 "generatePython": __m_generatePython, "structList": __x_prop(__g_structList, None), "typeName": __x_prop(__g_typeName, None), 
 "__init__": __m_ReturnElement})
         return __clsT
-    # end class factory ReturnElement, __c_ReturnElement (line 4708)
+    # end class factory ReturnElement, __c_ReturnElement (line 4709)
 
     def __c_SpreadElement(__cexT):
         def __g_typeName(this):
             return (u"spread")
-        # end function __g_typeName (line 4760)
+        # end function __g_typeName (line 4761)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ExpressionElement, 1, False)])
-        # end function __g_structList (line 4764)
+        # end function __g_structList (line 4765)
 
         def __m_checkStruct(this):
             if __x_cb(__x_not(__x_iof(this.parent, SequenceElement))):
                 raise InternalError((u"malformed structure in spread (not in sequence)"))
-            # end if (line 4769)
+            # end if (line 4770)
             (super(__clsT, this)).checkStruct()
-        # end function __m_checkStruct (line 4768)
+        # end function __m_checkStruct (line 4769)
 
         def __m_simplifyExpressions(this):
             raise InternalError((u"called simplifyExpressions of SpreadElement"))
-        # end function __m_simplifyExpressions (line 4775)
+        # end function __m_simplifyExpressions (line 4776)
 
         def __m_replaceWithTemp(this, optional = (True)):
             raise InternalError((u"called replaceWithTemp of SpreadElement"))
-        # end function __m_replaceWithTemp (line 4779)
+        # end function __m_replaceWithTemp (line 4780)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             value = this.lastChild
             writer.write((u"*"), (u""))
             value.writePython(writer, False, 11)
-        # end function __m_writePython (line 4783)
+        # end function __m_writePython (line 4784)
 
         def __m_SpreadElement(this, range):
             __csu(this, range)
-        # end function __m_SpreadElement (line 4789)
+        # end function __m_SpreadElement (line 4790)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4793)
+        # end static initializer __csi (line 4794)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4799)
+        # end instance initializer and super constructor __csu (line 4800)
 
         __clsT = __x_dcls("SpreadElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "checkStruct": __m_checkStruct, 
 "replaceWithTemp": __m_replaceWithTemp, "simplifyExpressions": __m_simplifyExpressions, "structList": __x_prop(__g_structList, None), 
 "typeName": __x_prop(__g_typeName, None), "writePython": __m_writePython, "__init__": __m_SpreadElement})
         return __clsT
-    # end class factory SpreadElement, __c_SpreadElement (line 4759)
+    # end class factory SpreadElement, __c_SpreadElement (line 4760)
 
     def __c_StaticGroupElement(__cexT):
         def __g_typeName(this):
             return (u"staticinit")
-        # end function __g_typeName (line 4812)
+        # end function __g_typeName (line 4813)
 
         def __g_allowThis(this):
             return False
-        # end function __g_allowThis (line 4816)
+        # end function __g_allowThis (line 4817)
 
         def __g_allowSuper(this):
             return False
-        # end function __g_allowSuper (line 4820)
+        # end function __g_allowSuper (line 4821)
 
         def __g_allowSuperCall(this):
             return False
-        # end function __g_allowSuperCall (line 4824)
+        # end function __g_allowSuperCall (line 4825)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(FunctionGroupElement, 1, False), ElementPattern(BodyElement, 1, False)])
-        # end function __g_structList (line 4828)
+        # end function __g_structList (line 4829)
 
         def __m_checkStruct(this):
             if __x_cb(__x_not(__x_iof(this.parent, ClassElement))):
                 raise InternalError((u"malformed structure in StaticGroupElement (not in ClassElement)"))
-            # end if (line 4833)
+            # end if (line 4834)
             (super(__clsT, this)).checkStruct()
-        # end function __m_checkStruct (line 4832)
+        # end function __m_checkStruct (line 4833)
 
         def __g_functionDefinitions(this):
             this.checkStruct()
             e = this.firstChild
             return e
-        # end function __g_functionDefinitions (line 4839)
+        # end function __g_functionDefinitions (line 4840)
 
         def __g_body(this):
             this.checkStruct()
             e = this.lastChild
             return e
-        # end function __g_body (line 4845)
+        # end function __g_body (line 4846)
 
         def __m_registerFunctionDefinition(this, tag, range = (None)):
             raise InternalError((u"register function definition in class property initializer"))
-        # end function __m_registerFunctionDefinition (line 4851)
+        # end function __m_registerFunctionDefinition (line 4852)
 
         def __m_registerLocalVar(this, name, range = (None)):
             raise InternalError((u"register local variable in class property initializer"))
             return None
-        # end function __m_registerLocalVar (line 4855)
+        # end function __m_registerLocalVar (line 4856)
 
         def __m_referVar(this, name, range = (None)):
             if __x_cb(__x_eq(this.theClass.tag.name, name)):
                 raise CompileError((u"cannot access the class name %s in the static property initializer"), range, name)
-            # end if (line 4861)
+            # end if (line 4862)
             return this.theClass.referVar(name, range)
-        # end function __m_referVar (line 4860)
+        # end function __m_referVar (line 4861)
 
         def __m_generatePython(this, gen):
             gen.blank()
@@ -4878,29 +4879,29 @@ True), ElementPattern(RestParameterElement, 0, True)])
             this.body.generatePython(gen)
             gen.TAB()
             gen.comment((u"end static initializer __csi (line %l)"), sline)
-        # end function __m_generatePython (line 4867)
+        # end function __m_generatePython (line 4868)
 
         def __m_dump(this, ctx):
             (super(__clsT, this)).dump(ctx)
-        # end function __m_dump (line 4883)
+        # end function __m_dump (line 4884)
 
         def __m_StaticGroupElement(this):
             __csu(this, None)
             this.append(FunctionGroupElement())
             this.append(BodyElement(None))
-        # end function __m_StaticGroupElement (line 4887)
+        # end function __m_StaticGroupElement (line 4888)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4893)
+        # end static initializer __csi (line 4894)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4899)
+        # end instance initializer and super constructor __csu (line 4900)
 
         __clsT = __x_dcls("StaticGroupElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 ), "allowSuper": __x_prop(__g_allowSuper, None), "allowSuperCall": __x_prop(__g_allowSuperCall, None), 
@@ -4909,41 +4910,41 @@ True), ElementPattern(RestParameterElement, 0, True)])
 "referVar": __m_referVar, "registerFunctionDefinition": __m_registerFunctionDefinition, "registerLocalVar": __m_registerLocalVar, 
 "structList": __x_prop(__g_structList, None), "typeName": __x_prop(__g_typeName, None), "__init__": __m_StaticGroupElement})
         return __clsT
-    # end class factory StaticGroupElement, __c_StaticGroupElement (line 4811)
+    # end class factory StaticGroupElement, __c_StaticGroupElement (line 4812)
 
     def __c_StaticInitializerElement(__cexT):
         def __g_typeName(this):
             return (u"staticprop")
-        # end function __g_typeName (line 4915)
+        # end function __g_typeName (line 4916)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ExpressionElement, 1, True)])
-        # end function __g_structList (line 4919)
+        # end function __g_structList (line 4920)
 
         def __m_checkStruct(this):
             if __x_cb(__x_not(__x_iof(this.theFunction, StaticGroupElement))):
                 raise InternalError((u"malformed structure in StaticInitializerElement (not in StaticGroupElement)"))
-            # end if (line 4924)
+            # end if (line 4925)
             (super(__clsT, this)).checkStruct()
-        # end function __m_checkStruct (line 4923)
+        # end function __m_checkStruct (line 4924)
 
         def __g_isInitializer(this):
             this.checkStruct()
             return __x_ne(this.firstChild, None)
-        # end function __g_isInitializer (line 4930)
+        # end function __g_isInitializer (line 4931)
 
         def __m_declareVariable(this):
             this.checkStruct()
             this.theClass.registerProperty(__cpm[this, "attribute"].name, __cpm[this, "isPublic"], True, __cpm[this
 , "attribute"].range)
-        # end function __m_declareVariable (line 4935)
+        # end function __m_declareVariable (line 4936)
 
         def __m_simplifyExpressions(this):
             (super(__clsT, this)).simplifyExpressions()
             if __x_cb(__x_not(this.isInitializer)):
                 this.remove()
-            # end if (line 4943)
-        # end function __m_simplifyExpressions (line 4941)
+            # end if (line 4944)
+        # end function __m_simplifyExpressions (line 4942)
 
         def __m_generatePython(this, ctx):
             writer = LineWriter()
@@ -4954,24 +4955,24 @@ True), ElementPattern(RestParameterElement, 0, True)])
             writer.write((u" = "), (u"\\"))
             right.writePython(writer, False)
             writer.finalize(ctx)
-        # end function __m_generatePython (line 4948)
+        # end function __m_generatePython (line 4949)
 
         def __m_dump(this, ctx):
             ctx.attr((u"attribute"), __cpm[this, "attribute"])
             (super(__clsT, this)).dump(ctx)
-        # end function __m_dump (line 4959)
+        # end function __m_dump (line 4960)
 
         def __m_StaticInitializerElement(this, attribute, isPublic, range):
             __csu(this, range)
             __cpm[this, "isPublic"] = isPublic
             __cpm[this, "attribute"] = attribute
-        # end function __m_StaticInitializerElement (line 4964)
+        # end function __m_StaticInitializerElement (line 4965)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 4970)
+        # end static initializer __csi (line 4971)
 
         def __csu(this, *argv):
             # create the private field
@@ -4979,7 +4980,7 @@ True), ElementPattern(RestParameterElement, 0, True)])
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 4976)
+        # end instance initializer and super constructor __csu (line 4977)
 
         __cpiT = __x_dpif("StaticInitializerElement", {"__slots__": ("attribute", "isPublic")})
         __clsT = __x_dcls("StaticInitializerElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
@@ -4988,12 +4989,12 @@ True), ElementPattern(RestParameterElement, 0, True)])
 "typeName": __x_prop(__g_typeName, None), "__init__": __m_StaticInitializerElement})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory StaticInitializerElement, __c_StaticInitializerElement (line 4914)
+    # end class factory StaticInitializerElement, __c_StaticInitializerElement (line 4915)
 
     def __c_StringLiteralElement(__cexT):
         def __g_typeName(this):
             return (u"string")
-        # end function __g_typeName (line 4994)
+        # end function __g_typeName (line 4995)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             def __fM6_(c, k, a):
@@ -5004,7 +5005,7 @@ True), ElementPattern(RestParameterElement, 0, True)])
                     __u_cl.val = __u_cl.val + 2
                     if __x_cb(__x_cb(l > 80) and __u_cl.val >= 50):
                         br = True
-                    # end if (line 5005)
+                    # end if (line 5006)
                 elif __x_cb(__x_eq(cp, 9)):
                     __u_cs.val = __u_cs.val + (u"\\t")
                     __u_cl.val = __u_cl.val + 2
@@ -5032,14 +5033,14 @@ True), ElementPattern(RestParameterElement, 0, True)])
                 else:
                     __u_cs.val = __u_cs.val + StrTool.toCodePointString(cp)
                     __u_cl.val = __u_cl.val + 10
-                # end if (line 5002)
+                # end if (line 5003)
                 if __x_cb(__x_cb(br) or __u_cl.val >= 100):
                     writer.write(__u_cs.val + (u"\\"), True)
                     __u_cl.val = 0
                     __u_cs.val = (u"")
-                # end if (line 5036)
+                # end if (line 5037)
                 br = False
-            # end function <anonymous> (__fM6_) (line 4999)
+            # end function <anonymous> (__fM6_) (line 5000)
 
             __u_cl = __x_var()
             __u_cs = __x_var()
@@ -5051,26 +5052,26 @@ True), ElementPattern(RestParameterElement, 0, True)])
             v.forEach(__fM6_)
             if __x_cb(__u_cl.val > 0):
                 writer.write(__u_cs.val, False)
-            # end if (line 5052)
+            # end if (line 5053)
             writer.write((u"\")"), contchr)
-        # end function __m_writePython (line 4998)
+        # end function __m_writePython (line 4999)
 
         def __m_dump(this, ctx):
             ctx.attr((u"source"), __cpm[this, "value"])
             (super(__clsT, this)).dump(ctx)
-        # end function __m_dump (line 5058)
+        # end function __m_dump (line 5059)
 
         def __m_StringLiteralElement(this, value, source, range):
             __csu(this, range)
             __cpm[this, "value"] = value
             __cpm[this, "source"] = source
-        # end function __m_StringLiteralElement (line 5063)
+        # end function __m_StringLiteralElement (line 5064)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 5069)
+        # end static initializer __csi (line 5070)
 
         def __csu(this, *argv):
             # create the private field
@@ -5078,76 +5079,76 @@ True), ElementPattern(RestParameterElement, 0, True)])
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 5075)
+        # end instance initializer and super constructor __csu (line 5076)
 
         __cpiT = __x_dpif("StringLiteralElement", {"__slots__": ("source", "value")})
         __clsT = __x_dcls("StringLiteralElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 ), "dump": __m_dump, "typeName": __x_prop(__g_typeName, None), "writePython": __m_writePython, "__init__": __m_StringLiteralElement})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory StringLiteralElement, __c_StringLiteralElement (line 4993)
+    # end class factory StringLiteralElement, __c_StringLiteralElement (line 4994)
 
     def __c_SuperElement(__cexT):
         def __g_typeName(this):
             return (u"super")
-        # end function __g_typeName (line 5091)
+        # end function __g_typeName (line 5092)
 
         def __g_constantOnly(this):
             return False
-        # end function __g_constantOnly (line 5095)
+        # end function __g_constantOnly (line 5096)
 
         def __g_tempVarOnly(this):
             return False
-        # end function __g_tempVarOnly (line 5099)
+        # end function __g_tempVarOnly (line 5100)
 
         def __m_checkVariables(this):
             this.checkStruct()
             if __x_cb(__x_not(this.allowSuper)):
                 raise CompileError((u"'super' keyword unexpected here"), this.range)
-            # end if (line 5105)
+            # end if (line 5106)
             fn = this.theFunction
             if __x_cb(__x_iof(fn, MethodElement)):
                 fn.meetReturnOrThis(this.range)
-            # end if (line 5109)
-        # end function __m_checkVariables (line 5103)
+            # end if (line 5110)
+        # end function __m_checkVariables (line 5104)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             if __x_cb(__x_iof(this.parent, CallElement)):
                 raise InternalError((u"cannot generate the code for super()"))
-            # end if (line 5115)
+            # end if (line 5116)
             writer.write((u"(super(__clsT, this))"), contchr)
-        # end function __m_writePython (line 5114)
+        # end function __m_writePython (line 5115)
 
         def __m_SuperElement(this, range):
             __csu(this, range)
-        # end function __m_SuperElement (line 5121)
+        # end function __m_SuperElement (line 5122)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 5125)
+        # end static initializer __csi (line 5126)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 5131)
+        # end instance initializer and super constructor __csu (line 5132)
 
         __clsT = __x_dcls("SuperElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "checkVariables": __m_checkVariables, 
 "constantOnly": __x_prop(__g_constantOnly, None), "tempVarOnly": __x_prop(__g_tempVarOnly, None), "typeName": __x_prop(__g_typeName, None), 
 "writePython": __m_writePython, "__init__": __m_SuperElement})
         return __clsT
-    # end class factory SuperElement, __c_SuperElement (line 5090)
+    # end class factory SuperElement, __c_SuperElement (line 5091)
 
     def __c_TernaryOperatorElement(__cexT):
         def __g_typeName(this):
             return (u"ternary")
-        # end function __g_typeName (line 5144)
+        # end function __g_typeName (line 5145)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ExpressionElement, 3, False)])
-        # end function __g_structList (line 5148)
+        # end function __g_structList (line 5149)
 
         def __m_functionalize(this):
             this.checkStruct()
@@ -5157,20 +5158,20 @@ True), ElementPattern(RestParameterElement, 0, True)])
 cond)
             this.prepend(cc)
             this.checkStruct()
-        # end function __m_functionalize (line 5152)
+        # end function __m_functionalize (line 5153)
 
         def __m_simplifyExpressions(this):
             this.checkStruct()
             if __x_cb(__x_not(this.complex)):
                 return
-            # end if (line 5164)
+            # end if (line 5165)
             cond = this.firstChild
             __v_exec = cond.nextSibling
             altn = __v_exec.nextSibling
             if __x_cb(__x_not(__x_cb(__v_exec.complex) or altn.complex)):
                 cond.simplifyExpressions()
                 return
-            # end if (line 5170)
+            # end if (line 5171)
             atva = this.theFunction.allocTempVar()
             ife = IfBlockElement(None)
             this.theStatement.before(ife)
@@ -5191,7 +5192,7 @@ cond)
             atvr.append(altn)
             this.replaceWith(atvl.getLeftElement())
             ife.simplifyExpressions()
-        # end function __m_simplifyExpressions (line 5162)
+        # end function __m_simplifyExpressions (line 5163)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             cond = this.firstChild
@@ -5200,7 +5201,7 @@ cond)
             p = parentType >= 1
             if __x_cb(p):
                 writer.write((u"("), False)
-            # end if (line 5201)
+            # end if (line 5202)
             __v_exec.writePython(writer, (u"") if __x_cb(p) else contchr, 2)
             writer.write((u" if "), (u"") if __x_cb(p) else contchr)
             cond.writePython(writer, (u"") if __x_cb(p) else contchr, 2)
@@ -5208,89 +5209,89 @@ cond)
             altn.writePython(writer, (u"") if __x_cb(p) else contchr, 2)
             if __x_cb(p):
                 writer.write((u")"), contchr)
-            # end if (line 5209)
-        # end function __m_writePython (line 5196)
+            # end if (line 5210)
+        # end function __m_writePython (line 5197)
 
         def __m_TernaryOperatorElement(this, range):
             __csu(this, range)
-        # end function __m_TernaryOperatorElement (line 5214)
+        # end function __m_TernaryOperatorElement (line 5215)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 5218)
+        # end static initializer __csi (line 5219)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 5224)
+        # end instance initializer and super constructor __csu (line 5225)
 
         __clsT = __x_dcls("TernaryOperatorElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 ), "functionalize": __m_functionalize, "simplifyExpressions": __m_simplifyExpressions, "structList": __x_prop(__g_structList, None), 
 "typeName": __x_prop(__g_typeName, None), "writePython": __m_writePython, "__init__": __m_TernaryOperatorElement})
         return __clsT
-    # end class factory TernaryOperatorElement, __c_TernaryOperatorElement (line 5143)
+    # end class factory TernaryOperatorElement, __c_TernaryOperatorElement (line 5144)
 
     def __c_ThisElement(__cexT):
         def __g_typeName(this):
             return (u"this")
-        # end function __g_typeName (line 5237)
+        # end function __g_typeName (line 5238)
 
         def __g_constantOnly(this):
             return True
-        # end function __g_constantOnly (line 5241)
+        # end function __g_constantOnly (line 5242)
 
         def __g_tempVarOnly(this):
             return True
-        # end function __g_tempVarOnly (line 5245)
+        # end function __g_tempVarOnly (line 5246)
 
         def __m_checkVariables(this):
             this.checkStruct()
             if __x_cb(__x_not(this.allowThis)):
                 raise CompileError((u"'this' expression must be used inside class instance methods"), this.range)
-            # end if (line 5251)
+            # end if (line 5252)
             fn = this.theFunction
             if __x_cb(__x_iof(fn, MethodElement)):
                 fn.meetReturnOrThis(this.range)
-            # end if (line 5255)
-        # end function __m_checkVariables (line 5249)
+            # end if (line 5256)
+        # end function __m_checkVariables (line 5250)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             writer.write((u"this"), contchr)
-        # end function __m_writePython (line 5260)
+        # end function __m_writePython (line 5261)
 
         def __m_ThisElement(this, range):
             __csu(this, range)
-        # end function __m_ThisElement (line 5264)
+        # end function __m_ThisElement (line 5265)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 5268)
+        # end static initializer __csi (line 5269)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 5274)
+        # end instance initializer and super constructor __csu (line 5275)
 
         __clsT = __x_dcls("ThisElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "checkVariables": __m_checkVariables, 
 "constantOnly": __x_prop(__g_constantOnly, None), "tempVarOnly": __x_prop(__g_tempVarOnly, None), "typeName": __x_prop(__g_typeName, None), 
 "writePython": __m_writePython, "__init__": __m_ThisElement})
         return __clsT
-    # end class factory ThisElement, __c_ThisElement (line 5236)
+    # end class factory ThisElement, __c_ThisElement (line 5237)
 
     def __c_ThrowElement(__cexT):
         def __g_typeName(this):
             return (u"throw")
-        # end function __g_typeName (line 5287)
+        # end function __g_typeName (line 5288)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ExpressionElement, 1, False)])
-        # end function __g_structList (line 5291)
+        # end function __g_structList (line 5292)
 
         def __m_generatePython(this, ctx):
             right = this.lastChild
@@ -5298,45 +5299,45 @@ cond)
             writer.write((u"raise "), False)
             right.writePython(writer, (u"\\"))
             writer.finalize(ctx)
-        # end function __m_generatePython (line 5295)
+        # end function __m_generatePython (line 5296)
 
         def __m_ThrowElement(this, range):
             __csu(this, range)
-        # end function __m_ThrowElement (line 5303)
+        # end function __m_ThrowElement (line 5304)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 5307)
+        # end static initializer __csi (line 5308)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 5313)
+        # end instance initializer and super constructor __csu (line 5314)
 
         __clsT = __x_dcls("ThrowElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "generatePython": __m_generatePython, 
 "structList": __x_prop(__g_structList, None), "typeName": __x_prop(__g_typeName, None), "__init__": __m_ThrowElement})
         return __clsT
-    # end class factory ThrowElement, __c_ThrowElement (line 5286)
+    # end class factory ThrowElement, __c_ThrowElement (line 5287)
 
     def __c_TryBlockElement(__cexT):
         def __g_typeName(this):
             return (u"trygroup")
-        # end function __g_typeName (line 5325)
+        # end function __g_typeName (line 5326)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(TryElement, 1, False), ElementPattern(CatchElement, 1, True), ElementPattern(FinallyElement, 
 1, True)])
-        # end function __g_structList (line 5329)
+        # end function __g_structList (line 5330)
 
         def __m_checkStruct(this):
             (super(__clsT, this)).checkStruct()
             if __x_cb(__x_eq(this.firstChild, this.lastChild)):
                 raise InternalError((u"malformed structure in TryBlockElement (missing catch or finally)"))
-            # end if (line 5336)
-        # end function __m_checkStruct (line 5334)
+            # end if (line 5337)
+        # end function __m_checkStruct (line 5335)
 
         def __m_generatePython(this, gen):
             this.checkStruct()
@@ -5344,138 +5345,138 @@ cond)
             gen.logLineNumber(sline)
             (super(__clsT, this)).generatePython(gen)
             gen.comment((u"end try (line %l)"), sline)
-        # end function __m_generatePython (line 5341)
+        # end function __m_generatePython (line 5342)
 
         def __m_TryBlockElement(this, range):
             __csu(this, range)
-        # end function __m_TryBlockElement (line 5349)
+        # end function __m_TryBlockElement (line 5350)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 5353)
+        # end static initializer __csi (line 5354)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 5359)
+        # end instance initializer and super constructor __csu (line 5360)
 
         __clsT = __x_dcls("TryBlockElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), 
 "checkStruct": __m_checkStruct, "generatePython": __m_generatePython, "structList": __x_prop(__g_structList, None), 
 "typeName": __x_prop(__g_typeName, None), "__init__": __m_TryBlockElement})
         return __clsT
-    # end class factory TryBlockElement, __c_TryBlockElement (line 5324)
+    # end class factory TryBlockElement, __c_TryBlockElement (line 5325)
 
     def __c_TryElement(__cexT):
         def __g_typeName(this):
             return (u"try")
-        # end function __g_typeName (line 5372)
+        # end function __g_typeName (line 5373)
 
         def __m_checkStruct(this):
             if __x_cb(__x_not(__x_iof(this.parent, TryBlockElement))):
                 raise InternalError((u"malformed structure in TryElement (not in TryBlockElement)"))
-            # end if (line 5377)
+            # end if (line 5378)
             (super(__clsT, this)).checkStruct()
-        # end function __m_checkStruct (line 5376)
+        # end function __m_checkStruct (line 5377)
 
         def __m_generatePython(this, ctx):
             ctx.writeln((u"try:"))
             ctx.tab()
             (super(__clsT, this)).generatePython(ctx)
             ctx.TAB()
-        # end function __m_generatePython (line 5383)
+        # end function __m_generatePython (line 5384)
 
         def __m_TryElement(this, range):
             __csu(this, range)
-        # end function __m_TryElement (line 5390)
+        # end function __m_TryElement (line 5391)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 5394)
+        # end static initializer __csi (line 5395)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 5400)
+        # end instance initializer and super constructor __csu (line 5401)
 
         __clsT = __x_dcls("TryElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "checkStruct": __m_checkStruct, 
 "generatePython": __m_generatePython, "typeName": __x_prop(__g_typeName, None), "__init__": __m_TryElement})
         return __clsT
-    # end class factory TryElement, __c_TryElement (line 5371)
+    # end class factory TryElement, __c_TryElement (line 5372)
 
     def __c_TupleElement(__cexT):
         def __g_typeName(this):
             return (u"tuple")
-        # end function __g_typeName (line 5412)
+        # end function __g_typeName (line 5413)
 
         def __g_complex(this):
             return __x_cb(this.hasSpread) or (super(__clsT, this)).complex
-        # end function __g_complex (line 5416)
+        # end function __g_complex (line 5417)
 
         def __m_simplifyExpressions(this):
             if __x_cb(__x_not(this.complex)):
                 return
-            # end if (line 5421)
+            # end if (line 5422)
             tv = this.makeList()
             cc = CallElement.callGlobal((u"__x_tup"), VarElement.getTempVar(tv))
             this.replaceWith(cc)
-        # end function __m_simplifyExpressions (line 5420)
+        # end function __m_simplifyExpressions (line 5421)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             if __x_cb(this.hasSpread):
                 raise InternalError((u"cannot generate python for tuple with spread syntax"))
-            # end if (line 5430)
+            # end if (line 5431)
             writer.write((u"__x_tupof("), False)
             (super(__clsT, this)).writePython(writer, (u""))
             if __x_cb(__x_cb(__x_ne(this.firstChild, None)) and __x_eq(this.firstChild, this.lastChild)):
                 writer.write((u","), False)
-            # end if (line 5435)
+            # end if (line 5436)
             writer.write((u")"), contchr)
-        # end function __m_writePython (line 5429)
+        # end function __m_writePython (line 5430)
 
         def __m_TupleElement(this, range):
             __csu(this, range)
-        # end function __m_TupleElement (line 5441)
+        # end function __m_TupleElement (line 5442)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 5445)
+        # end static initializer __csi (line 5446)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 5451)
+        # end instance initializer and super constructor __csu (line 5452)
 
         __clsT = __x_dcls("TupleElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "complex": __x_prop(__g_complex, None), 
 "simplifyExpressions": __m_simplifyExpressions, "typeName": __x_prop(__g_typeName, None), "writePython": __m_writePython, 
 "__init__": __m_TupleElement})
         return __clsT
-    # end class factory TupleElement, __c_TupleElement (line 5411)
+    # end class factory TupleElement, __c_TupleElement (line 5412)
 
     def __c_UniaryOperatorElement(__cexT):
         def __g_typeName(this):
             return (u"uniary")
-        # end function __g_typeName (line 5464)
+        # end function __g_typeName (line 5465)
 
         def __g_constantOnly(this):
             return this.firstChild.constantOnly
-        # end function __g_constantOnly (line 5468)
+        # end function __g_constantOnly (line 5469)
 
         def __g_tempVarOnly(this):
             return False
-        # end function __g_tempVarOnly (line 5472)
+        # end function __g_tempVarOnly (line 5473)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ExpressionElement, 1, False)])
-        # end function __g_structList (line 5476)
+        # end function __g_structList (line 5477)
 
         def __m_functionalize(this):
             this.checkStruct()
@@ -5485,12 +5486,12 @@ cond)
             m = __x_eq(op, (u"!"))
             if __x_cb(__x_not(__x_cb(n) or m)):
                 return
-            # end if (line 5486)
+            # end if (line 5487)
             exp = this.firstChild
             cc = CallElement.callGlobal((u"__x_typ") if __x_cb(n) else ((u"__x_tnb") if __x_cb(this.theGlobal.enableImplicitBooleanConversion)
  else (u"__x_not")), exp)
             this.replaceWith(cc)
-        # end function __m_functionalize (line 5480)
+        # end function __m_functionalize (line 5481)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             op = __cpm[this, "source"]
@@ -5499,45 +5500,45 @@ cond)
                 p = parentType > 10
                 if __x_cb(p):
                     writer.write((u"("), False)
-                # end if (line 5500)
+                # end if (line 5501)
                 writer.write(op, False)
                 dst.writePython(writer, (u"") if __x_cb(p) else contchr, 10)
                 if __x_cb(p):
                     writer.write((u")"), contchr)
-                # end if (line 5505)
+                # end if (line 5506)
             elif __x_cb(__x_eq(op, (u"?"))):
                 p = parentType >= 3
                 if __x_cb(p):
                     writer.write((u"("), False)
-                # end if (line 5510)
+                # end if (line 5511)
                 writer.write((u"None is not "), (u"") if __x_cb(p) else contchr)
                 dst.writePython(writer, (u"") if __x_cb(p) else contchr, 4)
                 if __x_cb(p):
                     writer.write((u")"), contchr)
-                # end if (line 5515)
+                # end if (line 5516)
             else:
                 raise InternalError((u"Cannot writePython for uniary ") + op)
-            # end if (line 5498)
-        # end function __m_writePython (line 5495)
+            # end if (line 5499)
+        # end function __m_writePython (line 5496)
 
         def __m_dump(this, ctx):
             ctx.attr((u"operator"), __cpm[this, "source"])
             (super(__clsT, this)).dump(ctx)
-        # end function __m_dump (line 5523)
+        # end function __m_dump (line 5524)
 
         def __m_UniaryOperatorElement(this, source, range):
             __csu(this, range)
             if __x_cb(__x_eq(source, (u"delete"))):
                 raise CompileError((u"delete can only be a standalone statement"), range)
-            # end if (line 5530)
+            # end if (line 5531)
             __cpm[this, "source"] = source
-        # end function __m_UniaryOperatorElement (line 5528)
+        # end function __m_UniaryOperatorElement (line 5529)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 5536)
+        # end static initializer __csi (line 5537)
 
         def __csu(this, *argv):
             # create the private field
@@ -5545,7 +5546,7 @@ cond)
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 5542)
+        # end instance initializer and super constructor __csu (line 5543)
 
         __cpiT = __x_dpif("UniaryOperatorElement", {"__slots__": ("source",)})
         __clsT = __x_dcls("UniaryOperatorElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
@@ -5554,33 +5555,33 @@ cond)
 "writePython": __m_writePython, "__init__": __m_UniaryOperatorElement})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory UniaryOperatorElement, __c_UniaryOperatorElement (line 5463)
+    # end class factory UniaryOperatorElement, __c_UniaryOperatorElement (line 5464)
 
     def __c_UpdateElement(__cexT):
         def __g_typeName(this):
             return (u"update")
-        # end function __g_typeName (line 5560)
+        # end function __g_typeName (line 5561)
 
         def __g_complex(this):
             return True
-        # end function __g_complex (line 5564)
+        # end function __g_complex (line 5565)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(LvalueElement, 1, False)])
-        # end function __g_structList (line 5568)
+        # end function __g_structList (line 5569)
 
         def __m_checkVariables(this):
             this.checkStruct()
             target = this.firstChild
             target.checkVariables()
             target.checkWrite()
-        # end function __m_checkVariables (line 5572)
+        # end function __m_checkVariables (line 5573)
 
         def __m_simplifyExpressions(this):
             def append(ase, val, act, op):
                 fn = (u"__x_inc") if __x_cb(op) else (u"__x_dec")
                 ase.append(CallElement.callGlobal(fn, val) if __x_cb(act) else val)
-            # end function append (line 5580)
+            # end function append (line 5581)
 
             this.checkStruct()
             op = __cpm[this, "plus"]
@@ -5597,13 +5598,13 @@ cond)
             append(asn, ate.getLeftElement(), __x_not(pre), op)
             asn.checkStruct()
             this.replaceWith(ate.getLeftElement())
-        # end function __m_simplifyExpressions (line 5579)
+        # end function __m_simplifyExpressions (line 5580)
 
         def __m_dump(this, ctx):
             ctx.attr((u"prefix"), __cpm[this, "prefix"])
             ctx.attr((u"operator"), (u"++") if __x_cb(__cpm[this, "plus"]) else (u"--"))
             (super(__clsT, this)).dump(ctx)
-        # end function __m_dump (line 5602)
+        # end function __m_dump (line 5603)
 
         def __m_UpdateElement(this, source, prefix, range):
             __csu(this, range)
@@ -5613,15 +5614,15 @@ cond)
                 __cpm[this, "plus"] = False
             else:
                 raise InternalError((u"invalid update operator"))
-            # end if (line 5610)
+            # end if (line 5611)
             __cpm[this, "prefix"] = prefix
-        # end function __m_UpdateElement (line 5608)
+        # end function __m_UpdateElement (line 5609)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 5620)
+        # end static initializer __csi (line 5621)
 
         def __csu(this, *argv):
             # create the private field
@@ -5629,7 +5630,7 @@ cond)
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 5626)
+        # end instance initializer and super constructor __csu (line 5627)
 
         __cpiT = __x_dpif("UpdateElement", {"__slots__": ("plus", "prefix")})
         __clsT = __x_dcls("UpdateElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "checkVariables": __m_checkVariables, 
@@ -5637,158 +5638,158 @@ cond)
 "structList": __x_prop(__g_structList, None), "typeName": __x_prop(__g_typeName, None), "__init__": __m_UpdateElement})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory UpdateElement, __c_UpdateElement (line 5559)
+    # end class factory UpdateElement, __c_UpdateElement (line 5560)
 
     def __c_VarDeclaratorElement(__cexT):
         def __g_typeName(this):
             return (u"vardecl")
-        # end function __g_typeName (line 5643)
+        # end function __g_typeName (line 5644)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(VarElement, 1, False)])
-        # end function __g_structList (line 5647)
+        # end function __g_structList (line 5648)
 
         def __m_checkStruct(this):
             (super(__clsT, this)).checkStruct()
             v = this.firstChild
             if __x_cb(__x_not(v.declarator)):
                 raise InternalError((u"malformed structure in VarDeclaratorElement (mismatched declarator)"))
-            # end if (line 5654)
-        # end function __m_checkStruct (line 5651)
+            # end if (line 5655)
+        # end function __m_checkStruct (line 5652)
 
         def __m_declareVariable(this):
             this.checkStruct()
             (super(__clsT, this)).declareVariable()
-        # end function __m_declareVariable (line 5659)
+        # end function __m_declareVariable (line 5660)
 
         def __m_simplifyExpressions(this):
             this.remove()
-        # end function __m_simplifyExpressions (line 5664)
+        # end function __m_simplifyExpressions (line 5665)
 
         def __m_VarDeclaratorElement(this, range):
             __csu(this, range)
-        # end function __m_VarDeclaratorElement (line 5668)
+        # end function __m_VarDeclaratorElement (line 5669)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 5672)
+        # end static initializer __csi (line 5673)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 5678)
+        # end instance initializer and super constructor __csu (line 5679)
 
         __clsT = __x_dcls("VarDeclaratorElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 ), "checkStruct": __m_checkStruct, "declareVariable": __m_declareVariable, "simplifyExpressions": __m_simplifyExpressions, 
 "structList": __x_prop(__g_structList, None), "typeName": __x_prop(__g_typeName, None), "__init__": __m_VarDeclaratorElement})
         return __clsT
-    # end class factory VarDeclaratorElement, __c_VarDeclaratorElement (line 5642)
+    # end class factory VarDeclaratorElement, __c_VarDeclaratorElement (line 5643)
 
     def __c_VarElement(__cexT):
         def __g_typeName(this):
             return (u"var")
-        # end function __g_typeName (line 5691)
+        # end function __g_typeName (line 5692)
 
         def __g_complex(this):
             return False
-        # end function __g_complex (line 5695)
+        # end function __g_complex (line 5696)
 
         def __g_declarator(this):
             return __cpm[this, "_declarator"]
-        # end function __g_declarator (line 5699)
+        # end function __g_declarator (line 5700)
 
         def __g_tempVarOnly(this):
             return __x_cb(__x_iof(__cpm[this, "target"], TempVar)) or __x_iof(__cpm[this, "target"], FunctionTag)
-        # end function __g_tempVarOnly (line 5703)
+        # end function __g_tempVarOnly (line 5704)
 
         def __m_declareVariable(this):
             if __x_cb(__x_not(this.declarator)):
                 return
-            # end if (line 5708)
+            # end if (line 5709)
             __cpm[this, "target"] = this.theFunction.registerLocalVar(__cpm[this, "source"], this.range)
-        # end function __m_declareVariable (line 5707)
+        # end function __m_declareVariable (line 5708)
 
         def __m_checkVariables(this):
             v = __cpm[this, "target"]
             if __x_cb(__x_eq(v, None)):
                 v = this.theFunction.referVar(__cpm[this, "source"], this.range)
                 __cpm[this, "target"] = v
-            # end if (line 5716)
+            # end if (line 5717)
             v.read(this.theFunction, this.range)
-        # end function __m_checkVariables (line 5714)
+        # end function __m_checkVariables (line 5715)
 
         def __m_checkWrite(this):
             v = __cpm[this, "target"]
             if __x_cb(__x_eq(v, None)):
                 v = this.theFunction.referVar(__cpm[this, "source"], this.range)
                 __cpm[this, "target"] = v
-            # end if (line 5725)
+            # end if (line 5726)
             v.write(this.theFunction, this.range)
-        # end function __m_checkWrite (line 5723)
+        # end function __m_checkWrite (line 5724)
 
         def __m_simplifyExpressions(this):
             pass
-        # end function __m_simplifyExpressions (line 5732)
+        # end function __m_simplifyExpressions (line 5733)
 
         def __m_extractLeft(this):
             pass
-        # end function __m_extractLeft (line 5736)
+        # end function __m_extractLeft (line 5737)
 
         def __m_extractLeftAndDuplicate(this):
             if __x_cb(this.declarator):
                 raise InternalError((u"declarator used in compound assignment"))
-            # end if (line 5741)
+            # end if (line 5742)
             v = VarElement(__cpm[this, "source"], False, this.range)
             __r0 = v
             __cpm[__r0, "target"] = __cpm[this, "target"]
             return v
-        # end function __m_extractLeftAndDuplicate (line 5740)
+        # end function __m_extractLeftAndDuplicate (line 5741)
 
         def __m_writePython(this, writer, contchr, parentType = (0)):
             writer.write(__cpm[this, "target"].toPython(), contchr)
-        # end function __m_writePython (line 5750)
+        # end function __m_writePython (line 5751)
 
         def __m_dump(this, ctx):
             ctx.attr((u"name"), __cpm[this, "source"])
             ctx.attr((u"variable"), __cpm[this, "target"])
             (super(__clsT, this)).dump(ctx)
-        # end function __m_dump (line 5754)
+        # end function __m_dump (line 5755)
 
         def __m_VarElement(this, source, declarator, range):
             __csu(this, range)
             __cpm[this, "source"] = source
             __cpm[this, "_declarator"] = declarator
-        # end function __m_VarElement (line 5760)
+        # end function __m_VarElement (line 5761)
 
         def __n_getGlobalVar(this, name):
             tvs = VarElement(name, False, None)
             __r0 = tvs
             __cpm[__r0, "target"] = GlobalVar(name)
             return tvs
-        # end function __n_getGlobalVar (line 5766)
+        # end function __n_getGlobalVar (line 5767)
 
         def __n_getTempVar(this, tv):
             tvs = VarElement((u"__r"), False, None)
             __r0 = tvs
             __cpm[__r0, "target"] = tv
             return tvs
-        # end function __n_getTempVar (line 5773)
+        # end function __n_getTempVar (line 5774)
 
         def __n_getFunctionExp(this, tag):
             tvs = VarElement((u"__e"), False, None)
             __r0 = tvs
             __cpm[__r0, "target"] = tag
             return tvs
-        # end function __n_getFunctionExp (line 5780)
+        # end function __n_getFunctionExp (line 5781)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 5787)
+        # end static initializer __csi (line 5788)
 
         def __csu(this, *argv):
             # create the private field
@@ -5797,7 +5798,7 @@ cond)
             __cpm[this, "target"] = None
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 5793)
+        # end instance initializer and super constructor __csu (line 5794)
 
         __cpiT = __x_dpif("VarElement", {"__slots__": ("_declarator", "source", "target")})
         __clsT = __x_dcls("VarElement", __cexT, {"__slots__": (), "getFunctionExp": __n_getFunctionExp, "getGlobalVar": __n_getGlobalVar, 
@@ -5808,16 +5809,16 @@ cond)
 "writePython": __m_writePython, "__init__": __m_VarElement})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory VarElement, __c_VarElement (line 5690)
+    # end class factory VarElement, __c_VarElement (line 5691)
 
     def __c_WhileElement(__cexT):
         def __g_typeName(this):
             return (u"while")
-        # end function __g_typeName (line 5814)
+        # end function __g_typeName (line 5815)
 
         def __g_structList(this):
             return ArrayList([ElementPattern(ConditionElement, 1, False), ElementPattern(BodyElement, 1, False)])
-        # end function __g_structList (line 5818)
+        # end function __g_structList (line 5819)
 
         def __m_simplifyExpressions(this):
             this.checkStruct()
@@ -5840,9 +5841,9 @@ cond)
                 iife.append(atrue)
                 abreak = BreakElement(None)
                 atrue.append(abreak)
-            # end if (line 5827)
+            # end if (line 5828)
             body.simplifyExpressions()
-        # end function __m_simplifyExpressions (line 5822)
+        # end function __m_simplifyExpressions (line 5823)
 
         def __m_generatePython(this, gen):
             cond = this.firstChild.firstChild
@@ -5858,29 +5859,29 @@ cond)
             body.generatePython(gen)
             gen.TAB()
             gen.comment((u"end while (line %l)"), sline)
-        # end function __m_generatePython (line 5847)
+        # end function __m_generatePython (line 5848)
 
         def __m_WhileElement(this, range):
             __csu(this, range)
-        # end function __m_WhileElement (line 5863)
+        # end function __m_WhileElement (line 5864)
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 5867)
+        # end static initializer __csi (line 5868)
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 5873)
+        # end instance initializer and super constructor __csu (line 5874)
 
         __clsT = __x_dcls("WhileElement", __cexT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "generatePython": __m_generatePython, 
 "simplifyExpressions": __m_simplifyExpressions, "structList": __x_prop(__g_structList, None), "typeName": __x_prop(__g_typeName, None), 
 "__init__": __m_WhileElement})
         return __clsT
-    # end class factory WhileElement, __c_WhileElement (line 5813)
+    # end class factory WhileElement, __c_WhileElement (line 5814)
 
     __r0 = __x_imp((u".compat"))
     ArrayList = __r0.ArrayList
