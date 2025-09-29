@@ -14,9 +14,9 @@ def __():
     def chkKey(s):
         if __x_cb(__x_not(__x_iof(s, type((u""))))):
             raise TypeError((u"key is not a string"))
-        # end if (line 15)
+        # end if
         return s
-    # end function chkKey (line 14)
+    # end function chkKey
 
     # class definitions:
 
@@ -27,26 +27,26 @@ def __():
                 v = g[1]
                 if __x_cb(this.has(k)):
                     raise AttributeError((u"key ") + k + (u" is existed"))
-                # end if (line 28)
+                # end if
                 this.set(k, v)
-            # end function <anonymous> (__f4_) (line 25)
+            # end function <anonymous> (__f4_)
 
             __csu(this)
             __cpm[this, "o"] = ({})
             ArrayList(source).forEach(__f4_)
-        # end function __m_StringMap (line 24)
+        # end function __m_StringMap
 
         def __m_get(this, key, *defval):
             dfv = ArrayList(defval)
             if __x_cb(dfv.length >= 2):
                 raise TypeError((u"Only one default value is allowed"))
-            # end if (line 41)
+            # end if
             key = chkKey(key)
             if __x_cb(__x_eq(dfv.length, 0)):
                 return __cpm[this, "o"][key]
-            # end if (line 45)
+            # end if
             return __cpm[this, "o"].get(key, dfv.get(0))
-        # end function __m_get (line 39)
+        # end function __m_get
 
         def __m_set(this, key, value):
             key = chkKey(key)
@@ -54,54 +54,54 @@ def __():
             __r1 = key
             __r0[__r1] = value
             return this
-        # end function __m_set (line 51)
+        # end function __m_set
 
         def __m_sets(this, keys, value):
             def __f8_(k, n, a):
                 this.set(k, value)
-            # end function <anonymous> (__f8_) (line 60)
+            # end function <anonymous> (__f8_)
 
             ArrayList(keys).forEach(__f8_)
             return this
-        # end function __m_sets (line 59)
+        # end function __m_sets
 
         def __m_has(this, key):
             key = chkKey(key)
             return __cpm[this, "o"].__contains__(key)
-        # end function __m_has (line 68)
+        # end function __m_has
 
         def __m_remove(this, key):
             key = chkKey(key)
             if __x_cb(__x_not(this.has(key))):
                 raise AttributeError((u"key ") + key + (u" doesn't exist"))
-            # end if (line 75)
+            # end if
             del __cpm[this, "o"][key]
             return this
-        # end function __m_remove (line 73)
+        # end function __m_remove
 
         def __m_forEach(this, callback):
             def __fC_(i, k, a):
                 if __x_cb(__x_eq(callback(__cpm[this, "o"][i], i, this), False)):
                     return False
-                # end if (line 84)
-            # end function <anonymous> (__fC_) (line 83)
+                # end if
+            # end function <anonymous> (__fC_)
 
             __r0 = []
             __r0.extend(__cpm[this, "o"])
             a0 = __r0
             a0.sort()
             ArrayList(a0).forEach(__fC_)
-        # end function __m_forEach (line 82)
+        # end function __m_forEach
 
         def __g_length(this):
             return len(__cpm[this, "o"])
-        # end function __g_length (line 96)
+        # end function __g_length
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 100)
+        # end static initializer __csi
 
         def __csu(this, *argv):
             # create the private field
@@ -109,7 +109,7 @@ def __():
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 106)
+        # end instance initializer and super constructor __csu
 
         __cpiT = __x_dpif("StringMap", {"__slots__": ("o",)})
         __clsT = __x_dcls("StringMap", __x_objT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "forEach": __m_forEach, 
@@ -117,7 +117,7 @@ def __():
 "sets": __m_sets, "__init__": __m_StringMap})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory StringMap, __c_StringMap (line 23)
+    # end class factory StringMap, __c_StringMap
 
     __r0 = __x_imp((u".compat"))
     ArrayList = __r0.ArrayList

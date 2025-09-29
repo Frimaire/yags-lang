@@ -17,43 +17,43 @@ def __():
         def __g_isAttached(this):
             return __x_cb(__x_cb(__x_ne(this.parent, None)) or __x_ne(this.previousSibling, None)) or __x_ne(this\
 .nextSibling, None)
-        # end function __g_isAttached (line 17)
+        # end function __g_isAttached
 
         def __g_hasChildren(this):
             return __x_ne(this.firstChild, None)
-        # end function __g_hasChildren (line 22)
+        # end function __g_hasChildren
 
         def __m_childrenChanged(this):
             if __x_cb(__x_ne(this.childrenVersion, this.childrenVersion)):
                 this.childrenVersion = 0
             else:
                 this.childrenVersion = this.childrenVersion + 1 & 0xFFFFFFFF
-            # end if (line 27)
+            # end if
             this.childIndexCachedUpTo = None
-        # end function __m_childrenChanged (line 26)
+        # end function __m_childrenChanged
 
         def __m_getCachedIndex(this, parentNode):
             if __x_cb(__x_ne(this.cachedIndexVersion, parentNode.childrenVersion)):
                 this.cachedIndexVersion = NaN
                 return -1
-            # end if (line 36)
+            # end if
             return this.cachedIndex
-        # end function __m_getCachedIndex (line 35)
+        # end function __m_getCachedIndex
 
         def __m_setCachedIndex(this, parentNode, index):
             this.cachedIndexVersion = parentNode.childrenVersion
             this.cachedIndex = index
-        # end function __m_setCachedIndex (line 43)
+        # end function __m_setCachedIndex
 
         def __m_SymbolTreeNode(this):
             __csu(this)
-        # end function __m_SymbolTreeNode (line 48)
+        # end function __m_SymbolTreeNode
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 52)
+        # end static initializer __csi
 
         def __csu(this, *argv):
             # initialize properties
@@ -68,7 +68,7 @@ def __():
             this.cachedIndexVersion = NaN
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 58)
+        # end instance initializer and super constructor __csu
 
         __clsT = __x_dcls("SymbolTreeNode", __x_objT, {"__slots__": (), "__init__": __csi}, {"__slots__": ("cachedIndex", 
 "cachedIndexVersion", "childIndexCachedUpTo", "childrenVersion", "firstChild", "lastChild", "nextSibling", 
@@ -76,7 +76,7 @@ def __():
 "hasChildren": __x_prop(__g_hasChildren, None), "isAttached": __x_prop(__g_isAttached, None), "setCachedIndex": __m_setCachedIndex, 
 "__init__": __m_SymbolTreeNode})
         return __clsT
-    # end class factory SymbolTreeNode, __c_SymbolTreeNode (line 16)
+    # end class factory SymbolTreeNode, __c_SymbolTreeNode
 
     def __c_TreeIterator():
         def __m_next(this):
@@ -85,7 +85,7 @@ def __():
             root = __cpm[this, "status_ROOT"]
             if __x_cb(__x_eq(__cpm[this, "status_NEXT"], None)):
                 return TreeIteratorResult(True, root)
-            # end if (line 86)
+            # end if
             value = __cpm[this, "status_NEXT"]
             if __x_cb(__x_eq(iterateFunc, 1)):
                 __cpm[this, "status_NEXT"] = tree._node(value).previousSibling
@@ -97,9 +97,9 @@ def __():
                 __cpm[this, "status_NEXT"] = tree.preceding(value, ({(u"root"): root}))
             else:
                 __cpm[this, "status_NEXT"] = tree.following(value, ({(u"root"): root}))
-            # end if (line 90)
+            # end if
             return TreeIteratorResult(False, value)
-        # end function __m_next (line 82)
+        # end function __m_next
 
         def __m_TreeIterator(this, tree, root, firstResult, iterateFunction):
             __csu(this)
@@ -107,7 +107,7 @@ def __():
             __cpm[this, "status_ROOT"] = root
             __cpm[this, "status_NEXT"] = firstResult
             __cpm[this, "status_ITERATE_FUNC"] = iterateFunction
-        # end function __m_TreeIterator (line 104)
+        # end function __m_TreeIterator
 
         def __csi(this):
             # super
@@ -118,7 +118,7 @@ def __():
             this.PARENT = 3
             this.PRECEDING = 4
             this.FOLLOWING = 5
-        # end static initializer __csi (line 112)
+        # end static initializer __csi
 
         def __csu(this, *argv):
             # create the private field
@@ -126,7 +126,7 @@ def __():
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 123)
+        # end instance initializer and super constructor __csu
 
         __cpiT = __x_dpif("TreeIterator", {"__slots__": ("status_ITERATE_FUNC", "status_NEXT", "status_ROOT", \
 "status_TREE")})
@@ -134,142 +134,143 @@ def __():
 "PREV"), "__init__": __csi}, {"__slots__": (), "next": __m_next, "__init__": __m_TreeIterator})
         __cpm = __x_prmT(__clsT, __cpiT)
         return __clsT
-    # end class factory TreeIterator, __c_TreeIterator (line 81)
+    # end class factory TreeIterator, __c_TreeIterator
 
     def __c_TreeIteratorResult():
         def __m_TreeIteratorResult(this, done, value):
             __csu(this)
             this.done = done
             this.value = value
-        # end function __m_TreeIteratorResult (line 140)
+        # end function __m_TreeIteratorResult
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 146)
+        # end static initializer __csi
 
         def __csu(this, *argv):
             # initialize properties
             this.done = False
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 152)
+        # end instance initializer and super constructor __csu
 
         __clsT = __x_dcls("TreeIteratorResult", __x_objT, {"__slots__": (), "__init__": __csi}, {"__slots__": (
 "done", "value"), "__init__": __m_TreeIteratorResult})
         return __clsT
-    # end class factory TreeIteratorResult, __c_TreeIteratorResult (line 139)
+    # end class factory TreeIteratorResult, __c_TreeIteratorResult
 
     def __c_TreePosition():
         def __h_DISCONNECTED(this):
             return 1
-        # end function __h_DISCONNECTED (line 165)
+        # end function __h_DISCONNECTED
 
         def __h_PRECEDING(this):
             return 2
-        # end function __h_PRECEDING (line 169)
+        # end function __h_PRECEDING
 
         def __h_FOLLOWING(this):
             return 4
-        # end function __h_FOLLOWING (line 173)
+        # end function __h_FOLLOWING
 
         def __h_CONTAINS(this):
             return 8
-        # end function __h_CONTAINS (line 177)
+        # end function __h_CONTAINS
 
         def __h_CONTAINED__BY(this):
             return 16
-        # end function __h_CONTAINED__BY (line 181)
+        # end function __h_CONTAINED__BY
 
         def __m_TreePosition(this):
             __csu(this)
             raise TypeError((u"TreePosition is not a constructor"))
-        # end function __m_TreePosition (line 185)
+        # end function __m_TreePosition
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 190)
+        # end static initializer __csi
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 196)
+        # end instance initializer and super constructor __csu
 
         __clsT = __x_dcls("TreePosition", __x_objT, {"__slots__": (), "CONTAINED_BY": __x_prop(__h_CONTAINED__BY, None), 
 "CONTAINS": __x_prop(__h_CONTAINS, None), "DISCONNECTED": __x_prop(__h_DISCONNECTED, None), "FOLLOWING": __x_prop(__h_FOLLOWING, None), 
 "PRECEDING": __x_prop(__h_PRECEDING, None), "__init__": __csi}, {"__slots__": (), "__init__": __m_TreePosition})
         return __clsT
-    # end class factory TreePosition, __c_TreePosition (line 164)
+    # end class factory TreePosition, __c_TreePosition
 
     def __c_SymbolTree():
-        def __m_SymbolTree(this):
+        def __m_SymbolTree(this, getNode, setNode):
             __csu(this)
-        # end function __m_SymbolTree (line 209)
+            this.getNode = getNode
+            this.setNode = setNode
+        # end function __m_SymbolTree
 
         def __m_initialize(this, object):
             this._node(object)
             return object
-        # end function __m_initialize (line 213)
+        # end function __m_initialize
 
         def __m___node(this, object):
             if __x_cb(__x_eq(object, None)):
                 return None
-            # end if (line 219)
-            node = object._symbolTreeNode
+            # end if
+            node = this.getNode(object)
             if __x_cb(__x_ne(node, None)):
                 return node
-            # end if (line 223)
+            # end if
             node = SymbolTreeNode()
-            __r0 = object
-            __r0._symbolTreeNode = node
+            this.setNode(object, node)
             return node
-        # end function _node(__m___node) (line 218)
+        # end function _node(__m___node)
 
         def __m_hasChildren(this, object):
             return this._node(object).hasChildren
-        # end function __m_hasChildren (line 232)
+        # end function __m_hasChildren
 
         def __m_firstChild(this, object):
             return this._node(object).firstChild
-        # end function __m_firstChild (line 236)
+        # end function __m_firstChild
 
         def __m_lastChild(this, object):
             return this._node(object).lastChild
-        # end function __m_lastChild (line 240)
+        # end function __m_lastChild
 
         def __m_previousSibling(this, object):
             return this._node(object).previousSibling
-        # end function __m_previousSibling (line 244)
+        # end function __m_previousSibling
 
         def __m_nextSibling(this, object):
             return this._node(object).nextSibling
-        # end function __m_nextSibling (line 248)
+        # end function __m_nextSibling
 
         def __m_parent(this, object):
             return this._node(object).parent
-        # end function __m_parent (line 252)
+        # end function __m_parent
 
         def __m_childrenIterator(this, parent, reverse = (False)):
             parentNode = this._node(parent)
             return TreeIterator(this, parent, parentNode.lastChild if __x_cb(reverse) else parentNode.firstChild, 
 TreeIterator.PREV if __x_cb(reverse) else TreeIterator.NEXT)
-        # end function __m_childrenIterator (line 256)
+        # end function __m_childrenIterator
 
         def __m_previousSiblingsIterator(this, object):
             return TreeIterator(this, object, this._node(object).previousSibling, TreeIterator.PREV)
-        # end function __m_previousSiblingsIterator (line 262)
+        # end function __m_previousSiblingsIterator
 
         def __m_nextSiblingsIterator(this, object):
             return TreeIterator(this, object, this._node(object).nextSibling, TreeIterator.NEXT)
-        # end function __m_nextSiblingsIterator (line 266)
+        # end function __m_nextSiblingsIterator
 
         def __m_ancestorsIterator(this, object):
             return TreeIterator(this, object, object, TreeIterator.PARENT)
-        # end function __m_ancestorsIterator (line 270)
+        # end function __m_ancestorsIterator
 
         def __m_remove(this, removeObject):
             removeNode = this._node(removeObject)
@@ -280,20 +281,20 @@ TreeIterator.PREV if __x_cb(reverse) else TreeIterator.NEXT)
                 if __x_cb(__x_eq(parentNode.firstChild, removeObject)):
                     __r0 = parentNode
                     __r0.firstChild = removeNode.nextSibling
-                # end if (line 280)
+                # end if
                 if __x_cb(__x_eq(parentNode.lastChild, removeObject)):
                     __r1 = parentNode
                     __r1.lastChild = removeNode.previousSibling
-                # end if (line 284)
-            # end if (line 279)
+                # end if
+            # end if
             if __x_cb(__x_ne(prevNode, None)):
                 __r2 = prevNode
                 __r2.nextSibling = removeNode.nextSibling
-            # end if (line 289)
+            # end if
             if __x_cb(__x_ne(nextNode, None)):
                 __r3 = nextNode
                 __r3.previousSibling = removeNode.previousSibling
-            # end if (line 293)
+            # end if
             __r4 = removeNode
             __r4.parent = None
             __r5 = removeNode
@@ -306,9 +307,9 @@ TreeIterator.PREV if __x_cb(reverse) else TreeIterator.NEXT)
             __r8.cachedIndexVersion = NaN
             if __x_cb(__x_ne(parentNode, None)):
                 parentNode.childrenChanged()
-            # end if (line 307)
+            # end if
             return removeObject
-        # end function __m_remove (line 274)
+        # end function __m_remove
 
         def __m_insertBefore(this, referenceObject, newObject):
             referenceNode = this._node(referenceObject)
@@ -317,7 +318,7 @@ TreeIterator.PREV if __x_cb(reverse) else TreeIterator.NEXT)
             parentNode = this._node(referenceNode.parent)
             if __x_cb(newNode.isAttached):
                 raise Error((u"Given object is already present in this SymbolTree, remove it first"))
-            # end if (line 318)
+            # end if
             __r0 = newNode
             __r0.parent = referenceNode.parent
             __r1 = newNode
@@ -329,16 +330,16 @@ TreeIterator.PREV if __x_cb(reverse) else TreeIterator.NEXT)
             if __x_cb(__x_ne(prevNode, None)):
                 __r4 = prevNode
                 __r4.nextSibling = newObject
-            # end if (line 329)
+            # end if
             if __x_cb(__x_cb(__x_ne(parentNode, None)) and __x_eq(parentNode.firstChild, referenceObject)):
                 __r5 = parentNode
                 __r5.firstChild = newObject
-            # end if (line 333)
+            # end if
             if __x_cb(__x_ne(parentNode, None)):
                 parentNode.childrenChanged()
-            # end if (line 337)
+            # end if
             return newObject
-        # end function __m_insertBefore (line 313)
+        # end function __m_insertBefore
 
         def __m_insertAfter(this, referenceObject, newObject):
             referenceNode = this._node(referenceObject)
@@ -347,7 +348,7 @@ TreeIterator.PREV if __x_cb(reverse) else TreeIterator.NEXT)
             parentNode = this._node(referenceNode.parent)
             if __x_cb(newNode.isAttached):
                 raise Error((u"Given object is already present in this SymbolTree, remove it first"))
-            # end if (line 348)
+            # end if
             __r0 = newNode
             __r0.parent = referenceNode.parent
             __r1 = newNode
@@ -359,23 +360,23 @@ TreeIterator.PREV if __x_cb(reverse) else TreeIterator.NEXT)
             if __x_cb(__x_ne(nextNode, None)):
                 __r4 = nextNode
                 __r4.previousSibling = newObject
-            # end if (line 359)
+            # end if
             if __x_cb(__x_cb(__x_ne(parentNode, None)) and __x_eq(parentNode.lastChild, referenceObject)):
                 __r5 = parentNode
                 __r5.lastChild = newObject
-            # end if (line 363)
+            # end if
             if __x_cb(__x_ne(parentNode, None)):
                 parentNode.childrenChanged()
-            # end if (line 367)
+            # end if
             return newObject
-        # end function __m_insertAfter (line 343)
+        # end function __m_insertAfter
 
         def __m_prependChild(this, referenceObject, newObject):
             referenceNode = this._node(referenceObject)
             newNode = this._node(newObject)
             if __x_cb(newNode.isAttached):
                 raise Error((u"Given object is already present in this SymbolTree, remove it first"))
-            # end if (line 376)
+            # end if
             if __x_cb(referenceNode.hasChildren):
                 this.insertBefore(referenceNode.firstChild, newObject)
             else:
@@ -386,16 +387,16 @@ TreeIterator.PREV if __x_cb(reverse) else TreeIterator.NEXT)
                 __r2 = referenceNode
                 __r2.lastChild = newObject
                 referenceNode.childrenChanged()
-            # end if (line 379)
+            # end if
             return newObject
-        # end function __m_prependChild (line 373)
+        # end function __m_prependChild
 
         def __m_appendChild(this, referenceObject, newObject):
             referenceNode = this._node(referenceObject)
             newNode = this._node(newObject)
             if __x_cb(newNode.isAttached):
                 raise Error((u"Given object is already present in this SymbolTree, remove it first"))
-            # end if (line 396)
+            # end if
             if __x_cb(referenceNode.hasChildren):
                 this.insertAfter(referenceNode.lastChild, newObject)
             else:
@@ -406,30 +407,31 @@ TreeIterator.PREV if __x_cb(reverse) else TreeIterator.NEXT)
                 __r2 = referenceNode
                 __r2.lastChild = newObject
                 referenceNode.childrenChanged()
-            # end if (line 399)
+            # end if
             return newObject
-        # end function __m_appendChild (line 393)
+        # end function __m_appendChild
 
         def __csi(this):
             # super
             __x_objT.__init__(this)
             # initialize properties
-        # end static initializer __csi (line 413)
+        # end static initializer __csi
 
         def __csu(this, *argv):
             # initialize properties
             # super
             super(__clsT, this).__init__(*argv)
-        # end instance initializer and super constructor __csu (line 419)
+        # end instance initializer and super constructor __csu
 
-        __clsT = __x_dcls("SymbolTree", __x_objT, {"__slots__": (), "__init__": __csi}, {"__slots__": (), "_node": __m___node, 
-"ancestorsIterator": __m_ancestorsIterator, "appendChild": __m_appendChild, "childrenIterator": __m_childrenIterator, 
-"firstChild": __m_firstChild, "hasChildren": __m_hasChildren, "initialize": __m_initialize, "insertAfter": __m_insertAfter, 
-"insertBefore": __m_insertBefore, "lastChild": __m_lastChild, "nextSibling": __m_nextSibling, "nextSiblingsIterator": __m_nextSiblingsIterator, 
-"parent": __m_parent, "prependChild": __m_prependChild, "previousSibling": __m_previousSibling, "previousSiblingsIterator": __m_previousSiblingsIterator, 
+        __clsT = __x_dcls("SymbolTree", __x_objT, {"__slots__": (), "__init__": __csi}, {"__slots__": ("getNode", 
+"setNode"), "_node": __m___node, "ancestorsIterator": __m_ancestorsIterator, "appendChild": __m_appendChild, 
+"childrenIterator": __m_childrenIterator, "firstChild": __m_firstChild, "hasChildren": __m_hasChildren, 
+"initialize": __m_initialize, "insertAfter": __m_insertAfter, "insertBefore": __m_insertBefore, "lastChild": __m_lastChild, 
+"nextSibling": __m_nextSibling, "nextSiblingsIterator": __m_nextSiblingsIterator, "parent": __m_parent, 
+"prependChild": __m_prependChild, "previousSibling": __m_previousSibling, "previousSiblingsIterator": __m_previousSiblingsIterator, 
 "remove": __m_remove, "__init__": __m_SymbolTree})
         return __clsT
-    # end class factory SymbolTree, __c_SymbolTree (line 208)
+    # end class factory SymbolTree, __c_SymbolTree
 
     Error = Exception
     SymbolTreeNode = __c_SymbolTreeNode()

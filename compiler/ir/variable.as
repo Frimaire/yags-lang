@@ -1,43 +1,39 @@
 var {ArrayList, StrTool, printf} = import('.compat');
 var {StringMap} = import('.StringMap');
-var {CompileError, ElementPattern, Range, ConflictError, InternalError, XMLDumper} = import('.utils');
+var {ElementPattern, InternalError, XMLDumper} = import('.utils');
+var CAS = import('tools.cas');
+var {isKeyword: _isKeyword, isSpecial: _isSpecial} = import('.attribute');
 
-// please DO NOT delete the headers like this
-// #########= Identifier
+var radix36:ArrayList = new ArrayList('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 
 /**
- * base class of the identifiers
- *
- * 各种标识符的基类, 不要直接使用这个类.
+ * integer to radix 32
  */
-public class Identifier {
-    public static var radix36:ArrayList = new ArrayList('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-    public static var pythonKeywords:StringMap = new StringMap();
-
-    /**
-     * integer to radix 32
-     */
-    public static function encodeRadix32(n:Number):String {
-        if(int(n) !== n || n < 0) {
-            throw new InternalError('illegal n in encodeRadix32');
-        }
-        if(n >= (1 << 30)) {
-            // 尽管触发这个可能是因为一个程序里要几十亿个临时变量, 但这基本不可能发生
-            throw new InternalError('n too large in encodeRadix32');
-        }
-        if(n === 0) {
-            return '0';
-        }
-        var k = 6, s = '';
-        while(k > 0 && n > 0) {
-            k--;
-            var cn = Identifier.radix36.get(n & 31);
-            s = cn + s;
-            n >>= 5;
-        }
-        return s;
+public function encodeRadix32(n:Number):String {
+    if(int(n) !== n || n < 0) {
+        throw new InternalError('illegal n in encodeRadix32');
     }
+    if(n >= (1 << 30)) {
+        // 尽管触发这个可能是因为一个程序里要几十亿个临时变量, 但这基本不可能发生
+        throw new InternalError('n too large in encodeRadix32');
+    }
+    if(n === 0) {
+        return '0';
+    }
+    var k = 6, s = '';
+    while(k > 0 && n > 0) {
+        k--;
+        var cn = radix36.get(n & 31);
+        s = cn + s;
+        n >>= 5;
+    }
+    return s;
+}
 
+/**
+ * base class for variables
+ */
+public class Variable {
     /**
      * original name
      */
@@ -47,36 +43,29 @@ public class Identifier {
      * original range object of this, used for error reporting
      */
     public var range:Range;
+    
+    /**
+     * is assigned by =
+     */
+    public var assigned:Boolean = false;
 
     /**
-    * check if this is a python's keyword
-    */
-    public function get isKeyword():Boolean {
-        return Identifier.pythonKeywords.has(this.name);
-    }
+     * is modified by the inner function
+     */
+    public var closure:Boolean = false;
+
+    /**
+     * the function where this is declared
+     */
+    public var at:BaseFunctionElement;
 
     /**
      * check if s needs to be encoded
      *
-     * 检查是否为特殊标识符, 即包含非ASCII字符或美元符号
-     * 对于其他情况, 需要由子类进行进一步的检查
+     * 检查是否为特殊标识符, 包括含非ASCII字符, 美元符号或者是Python关键字
      */
     public function get isSpecial():Boolean {
-        var enc = false;
-        var ars = new ArrayList(this.name);
-        ars.forEach(function(c, k, a) {
-            var ch = StrTool.codePointAt(c);
-            // $
-            if(ch === 36) {
-                enc = true;
-                return false;
-            }
-            if(ch >= 128) {
-                enc = true;
-                return false;
-            }
-        });
-        return enc;
+        return _isKeyword(this.name) || _isSpecial(this.name);
     }
 
     /**
@@ -110,84 +99,15 @@ public class Identifier {
             var pn = ch >> 15;
             var cn = ch;
             var ss = '';
-            ss = Identifier.radix36.get(cn & 31) + ss;
+            ss = radix36.get(cn & 31) + ss;
             cn >>= 5;
-            ss = Identifier.radix36.get(cn & 31) + ss;
+            ss = radix36.get(cn & 31) + ss;
             cn >>= 5;
-            ss = Identifier.radix36.get(cn & 31) + ss;
-            ss = Identifier.radix36.get(pn) + ss;
+            ss = radix36.get(cn & 31) + ss;
+            ss = radix36.get(pn) + ss;
             se += '_' + ss;
         });
         return se;
-    }
-
-    /**
-     * to string, just output the name
-     */
-    public function toString():String {
-        return this.name;
-    }
-
-    public function Identifier(name:String, range:Range) {
-        this.name = name;
-        this.range = range;
-    }
-}
-
-// py's keyword
-Identifier.pythonKeywords.sets(new ArrayList(['False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield', 'exec']), true);
-
-// #########= Attribute
-
-/**
- * class of the attribute
- *
- * 标签需要和Python本身的标签兼容
- */
-public class Attribute extends Identifier {
-    public function toPython():String {
-        return this.name;
-    }
-
-    public function Attribute(name:String, range:Range) {
-        super(name, range);
-        if(this.isSpecial) {
-            throw new CompileError('Illegal attribute name ' + name, range);
-        }
-        if(this.isKeyword) {
-            throw new CompileError('Python keyword cannot be used as attribute ' + name, range);
-        }
-    }
-}
-
-// #########= Variable
-
-/**
- * base class for variables
- */
-public class Variable extends Identifier {
-    /**
-     * is assigned by =
-     */
-    public var assigned:Boolean = false;
-
-    /**
-     * is modified by the inner function
-     */
-    public var closure:Boolean = false;
-
-    /**
-     * the function where this is declared
-     */
-    public var at:BaseFunctionElement;
-
-    /**
-     * check if s needs to be encoded
-     *
-     * 检查是否为特殊标识符, 包括含非ASCII字符, 美元符号或者是Python关键字
-     */
-    override public function get isSpecial():Boolean {
-        return super.isSpecial || super.isKeyword;
     }
 
     /**
@@ -229,7 +149,6 @@ public class Variable extends Identifier {
      * original name to python identifier (without closure suffix)
      */
     public function toRawPython():String {
-        // 子类应当超按该函数以加上适当的前缀
         throw new InternalError('toRawPython is abstract');
     }
 
@@ -246,10 +165,25 @@ public class Variable extends Identifier {
     }
 
     /**
+     * wrapper for toString
+     */
+    public function __str__():String {
+        return this.toString();
+    }
+
+    /**
+     * to string, just output the name
+     */
+    public function toString():String {
+        return this.name;
+    }
+
+    /**
      * the constructor
      */
     public function Variable(name:String, at:BaseFunctionElement, range:Range) {
-        super(name, range);
+        this.name = name;
+        this.range = range;
         this.at = at;
     }
 
@@ -260,7 +194,7 @@ public class Variable extends Identifier {
 /**
  * built-in variables
  *
- * 来自内部作用域的变量, 比如Infinity
+ * 来自内部作用域的变量, 包括Python的预定义变量, Infinity和NaN.
  * 内部变量不允许直接赋值, 但是可以声明一个同名的变量.
  */
 public class BuiltinVar extends Variable {
@@ -282,7 +216,7 @@ public class BuiltinVar extends Variable {
      * check the writing to this
      */
     override public function write(from:BaseFunctionElement, range:Range = null):void {
-        throw new CompileError('Illegal assignment to bulit-in variables', range);
+        CAS.error(range, 'Illegal assignment to bulit-in variables');
     }
 
     override public function toRawPython():String {
@@ -301,196 +235,6 @@ public class BuiltinVar extends Variable {
      */
     public function BuiltinVar(name:String, at:BaseFunctionElement) {
         super(name, at, null);
-    }
-}
-
-// #########= ClassFieldDescriptor
-
-/**
- * descriptof of the class field, used by ClassElement
- *
- * ClassElement用来统计其成员信息的类, 注意类成员本身不应使用这个类, 而是要分别使用MethodTag和PropertyTag.
- * 应将静态和非静态成员放在不同的字典中.
- */
-public class ClassFieldDescriptor extends Attribute {
-    private var getter:MethodTag = null;
-    private var setter:MethodTag = null;
-    private var method:MethodTag = null;
-    private var property:Boolean = false;
-
-    private var priv:Boolean = false;
-    private var publ:Boolean = false;
-
-    private var isStatic:Boolean = false;
-
-    /**
-     * true if this is a property and should be declared in __slots__
-     */
-    public function get isProperty():Boolean {
-        this.verify();
-        return this.property;
-    }
-
-    /**
-     * true if this is an accessor and should be created by property class
-     */
-    public function get isAccessor():Boolean {
-        this.verify();
-        return this.getter !== null || this.setter !== null;
-    }
-
-    /**
-     * true if this has a getter
-     */
-    public function get isGetter():Boolean {
-        this.verify();
-        return this.getter !== null;
-    }
-
-    /**
-     * true if this has a setter
-     */
-    public function get isSetter():Boolean {
-        this.verify();
-        return this.setter !== null;
-    }
-
-    /**
-     * true if this is a method (but not accessor)
-     */
-    public function get isMethod():Boolean {
-        this.verify();
-        return this.method !== null;
-    }
-
-    /**
-     * true if this is a private member
-     */
-    public function get isPrivate():Boolean {
-        this.verify();
-        return this.priv;
-    }
-
-    /**
-     * called when a method with the same name is met
-     */
-    public function meetMethod(tag:MethodTag):void {
-        if(tag.isStatic !== this.isStatic) {
-            throw new InternalError('mismatched static flag');
-        }
-        if(this.property) {
-            throw new ConflictError('Incompatible override to property %s', tag.range, this.range, this.name); 
-        }
-        if(this.method !== null ||
-           (this.setter !== null || this.getter !== null) && !tag.isAccessor ||
-           this.setter !== null && tag.isSetter ||
-           this.getter !== null && !tag.isSetter) {
-            throw new CompileError('Duplicate method definition %s', tag.range, this.name); 
-        }
-        if(this.priv && tag.isPublic || this.publ && !tag.isPublic) {
-            throw new ConflictError('A conflict exists with access modifier of definition %s', tag.range, this.range, this.name); 
-        }
-        if(!tag.isAccessor) {
-            this.method = tag;
-        } else if(tag.isSetter) {
-            this.setter = tag;
-        } else {
-            this.getter = tag;
-        }
-        if(tag.isPublic) {
-            this.publ = true;
-        } else {
-            this.priv = true;
-        }
-        this.verify();
-    }
-
-    /**
-     * called when a proporty with the same name is met
-     */
-    public function meetProperty(isPublic:Boolean, range:Range):void {
-        if(this.property || this.method !== null || this.setter !== null || this.getter !== null) {
-            throw new ConflictError('Incompatible override to property %s', range, this.range, this.name); 
-        }
-        this.range = range;
-        this.property = true;
-        if(isPublic) {
-            this.publ = true;
-        } else {
-            this.priv = true;
-        }
-        this.verify();
-    }
-
-    /**
-     * to method tag or accessor creator
-     */
-    public function toMethodName():String {
-        this.verify();
-        if(this.isProperty) {
-            throw new InternalError('property is not method');
-        }
-        if(this.isMethod) {
-            return this.method.toRawPython();
-        }
-        var g = this.isGetter ? this.getter.toRawPython() : 'None';
-        var s = this.isSetter ? this.setter.toRawPython() : 'None';
-        return '__x_prop(' + g + ', ' + s + ')';
-    }
-
-    private function verify():void {
-        /*
-         * the reserved class member
-         *
-         * 一些类成员的名称是不可使用的. 大多数是特殊方法(special method), 使用这些名称会和默认行为发生冲突.
-         * 此外特殊方法只能作为实例方法使用, 不可以作为其他的成员. 
-         */
-        var rsvdMember = new StringMap();
-        rsvdMember.sets(['__init__', '__new__', '__slots__', '__dict__',
-                         '__getattribute__', '__getattr__', '__setattr__', '__delattr__',
-                         '__instancecheck__', '__subclasscheck__', '__init_subclass__',
-                         '__annotations__', '__bases__', '__cause__', '__class__', '__classcell__',
-                         '__closure__', '__code__', '__context__', '__debug__', '__defaults__',
-                         '__doc__', '__file__', '__future__', '__globals__', '__kwdefaults__', '__mro__',
-                         '__name__', '__package__', '__path__', '__prepare__', '__qualname__', '__self__',
-                         '__spec__', '__traceback__'
-                        ], true);
-        var rsvdStatic = new StringMap();
-        rsvdStatic.sets([
-            'mro'
-        ], true);
-
-        // 以双下划线开头和结尾的标签保留给魔术方法
-        // 如果不是魔术方法, 就不可以双下划线开头, 以免导致意外的转义
-        var na = new ArrayList(this.name);
-        var dupre = na.length >= 2 && na.get(0) === '_' && na.get(1) === '_';
-        // 如果只有双下划线(__), 也算双下划线结尾
-        var dusuf = na.length >= 2 && na.get(-1) === '_' && na.get(-2) === '_';
-        if(dupre && dusuf && (this.method === null || this.isStatic || !this.publ)) {
-            throw new CompileError('names starting and ending with double underscores in class statement are reserved for special methods', this.range);
-        }
-        if(dupre && !dusuf) {
-            throw new CompileError('names starting with double underscores in class statement are not allowed', range);
-        }
-        if(!this.isStatic && rsvdMember.has(this.name)) {
-            throw new CompileError('class member ' + this.name + ' is reserved', range);
-        }
-        if(this.isStatic && rsvdStatic.has(this.name)) {
-            throw new CompileError('static member ' + this.name + ' is reserved', range);
-        }
-
-        if(this.getter === null && this.setter === null && this.method === null && !this.property) {
-            throw new InternalError('undefined class member');
-        }
-
-        if(!this.priv && !this.publ) {
-            throw new InternalError('class member withput access modifier');
-        }
-    }
-
-    public function ClassFieldDescriptor(name:String, isStatic:Boolean) {
-        super(name, null);
-        this.isStatic = isStatic;
     }
 }
 
@@ -579,16 +323,117 @@ public class LocalVar extends Variable {
      */
     override public function toString():String {
         var n = this.name;
-        return 'local.' + (n === null ? '?' : n) + (this.closure ? '@closure' : '');
+        return 'local_var[' + hex(id(this)) + '].' + (n === null ? '?' : n) + (this.closure ? '.closure' : '');
     }
 
     /**
      * the constructor
      */
-    public function LocalVar(name:String, at:BaseFunctionElement, range:Range) {
-        super(name, at, range);
+    public function LocalVar(name:String, range:Range) {
+        super(name, null, range);
     }
 
+}
+
+// #########= VarReference
+
+/*
+  A placeholder for the variable reference. Will be linked to the target variable in checkVariable.
+ */
+public class VarReference extends Variable {
+    // The target of this variable.
+    private var target:Variable;
+
+    /*
+      Check the redeclaration with the same name.
+     */
+    override public function redeclare(from:BaseFunctionElement, range:Range = null):void {
+        CAS.note(this.range, 'An internal error occurs here');
+        throw new InternalError('declare VarReference');
+    }
+
+    // return true if the target is a variable without side-effect
+    public function get tempVarOnly() {
+        // FunctionTag has no side-effect, since functions are hoisted,
+        // accessment to FunctionTag will never throw error.
+        return this.target !== null && (this.target instanceof FunctionTag);
+    }
+    
+    /**
+     * check the reading from this
+     */
+    override public function read(from:BaseFunctionElement, range:Range = null):void {
+        if(this.at === null) {
+            CAS.note(this.range, 'An internal error occurs here');
+            throw new InternalError('at is null');
+        }
+        if(this.target === null) {
+            this.target = this.at.referVar(this.name, this.range);
+        }
+        this.target.read(from, range);
+    }
+
+    /**
+     * check the writing to this
+     * constants should override this and throw error
+     * @param {BaseFunctionElement} from, the function where this is assigned
+     * @param {Range} range, original range object from the parser, used for error reporting
+     */
+    override public function write(from:BaseFunctionElement, range:Range = null):void {
+        if(this.at === null) {
+            CAS.note(this.range, 'An internal error occurs here');
+            throw new InternalError('at is null');
+        }
+        if(this.target === null) {
+            this.target = this.at.referVar(this.name, this.range);
+        }
+        this.target.write(from, range);
+    }
+
+    // to python identifier
+    override public function toPython():String {
+        if(this.at === null) {
+            CAS.note(this.range, 'An internal error occurs here');
+            throw new InternalError('at is null');
+        }
+        if(this.target === null) {
+            CAS.note(this.range, 'An internal error occurs here');
+            throw new InternalError('unreferenced variable ' + str(this.name));
+        }
+        return this.target.toPython();
+    }
+
+    // original name to python identifier (without closure suffix)
+    override public function toRawPython():String {
+        if(this.target === null) {
+            CAS.note(this.range, 'An internal error occurs here');
+            throw new InternalError('unreferenced variable ' + str(this.name));
+        }
+        return this.target.toRawPython();
+    }
+
+    // to comment string
+    public function toComment():String {
+        if(this.target === null) {
+            CAS.note(this.range, 'An internal error occurs here');
+            return '<unreferenced variable>';
+        }
+        return this.target.toComment();
+    }
+
+    /**
+     * to string
+     */
+    override public function toString():String {
+        var n = this.name;
+        return 'ref[' + hex(id(this)) + '].' + (n === null ? '?' : n) + '[' + (this.target === null ? 'null' : hex(id(this.target))) + ']';
+    }
+
+    // the constructor
+    public function VarReference(name:String, range:Range) {
+        super(name, null, range);
+        this.target = null;
+    }
 }
 
 // #########= ClassTag
@@ -608,7 +453,7 @@ public class ClassTag extends LocalVar {
      * @param {Range} range, original range object from the parser, used for error reporting
      */
     override public function redeclare(from:BaseFunctionElement, range:Range = null):void {
-        throw new ConflictError("Duplicate class definition", range, this.range);
+        CAS.conflict(this.name, this.range, range);
     }
 
     /**
@@ -618,7 +463,8 @@ public class ClassTag extends LocalVar {
      * @param {Range} range, original range object from the parser, used for error reporting
      */
     override public function write(from:BaseFunctionElement, range:Range = null):void {
-        throw new ConflictError("Illegal assignment to class definition", range, this.range);
+        CAS.delayedError(range, "Illegal assignment to class definition %s.", this.name);
+        CAS.note(this.range, "'%s' has previously declared here.", this.name);
     }
 
     /**
@@ -648,8 +494,8 @@ public class ClassTag extends LocalVar {
     /**
      * the constructor
      */
-    public function ClassTag(name:String, target:ClassElement, range:Range) {
-        super(name, target, range);
+    public function ClassTag(name:String, range:Range) {
+        super(name, range);
         this.assigned = true;
     }
 }
@@ -676,7 +522,7 @@ public class FunctionTag extends LocalVar {
      * @param {Range} range, original range object from the parser, used for error reporting
      */
     override public function redeclare(from:BaseFunctionElement, range:Range = null):void {
-        throw new ConflictError("Duplicate function definition", range, this.range);
+        CAS.conflict(this.name, this.range, range);
     }
 
     /**
@@ -686,7 +532,8 @@ public class FunctionTag extends LocalVar {
      * @param {Range} range, original range object from the parser, used for error reporting
      */
     override public function write(from:BaseFunctionElement, range:Range = null):void {
-        throw new ConflictError("Illegal assignment to function definition", range, this.range);
+        CAS.delayedError(range, "Illegal assignment to function definition %s.", this.name);
+        CAS.note(this.range, "'%s' has previously declared here.", this.name);
     }
 
     /**
@@ -702,15 +549,14 @@ public class FunctionTag extends LocalVar {
     override public function toString():String {
         var n = this.name;
         var f = this.at;
-        return 'def.' + (n === null ? '?' : n) +
-            (f === null ? '' : '[' + this.at.functionToken + ']');
+        return 'func[' + hex(id(this)) + '].' + (n === null ? '?' : n);
     }
 
     /**
      * the constructor
      */
-    public function FunctionTag(name:String, target:FunctionElement, range:Range) {
-        super(name, target, range);
+    public function FunctionTag(name:String, range:Range) {
+        super(name, range);
         // 函数定义是提升的
         this.assigned = true;
     }
@@ -736,7 +582,8 @@ public class FunctionExpTag extends FunctionTag {
      * @param {Range} range, original range object from the parser, used for error reporting
      */
     override public function write(from:BaseFunctionElement, range:Range = null):void {
-        throw new ConflictError("Illegal assignment to function expression", range, this.range);
+        CAS.delayedError(range, 'Illegal assignment to function expression name %s', this.name);
+        CAS.note(this.range, "'%s' has previously defined here.", this.name);
     }
 
     /**
@@ -764,12 +611,20 @@ public class FunctionExpTag extends FunctionTag {
     }
 
     /**
-     * the constructor
-     *
-     * name可以是null, 对应一个匿名的函数表达式
+     * to string
      */
-    public function FunctionExpTag(name:String, target:FunctionExpressionElement, range:Range) {
-        super(name, target, range);
+    override public function toString():String {
+        var n = this.name;
+        var f = this.at;
+        return 'func_exp[' + hex(id(this)) + '].' + (n === null ? 'anonymous' : n);
+    }
+
+    /*
+      the constructor
+      `name` and `range` can be null for anonymous function expression.
+     */
+    public function FunctionExpTag(name:String = null, range:Range = null) {
+        super(name, range);
     }
 }
 
@@ -887,14 +742,14 @@ public class MethodTag extends FunctionTag {
      */
     override public function toString():String {
         var n = this.name;
-        return (this.isPublic ? 'public.' : 'private.') + (this.isStatic ? 'static.' : '') + (this.isAccessor ? (this.isSetter ? 'setter' : 'getter') : 'method') + '.' + (n === null ? '?' : n);
+        return 'method.' + (this.isPublic ? 'public.' : 'private.') + (this.isStatic ? 'static.' : '') + (this.isAccessor ? (this.isSetter ? 'setter' : 'getter') : 'method') + '.' + (n === null ? '?' : n);
     }
 
     /**
      * the constructor
      */
-    public function MethodTag(name:String, methodType:String, isStatic:Boolean, isPublic:Boolean, target:MethodElement, range:Range) {
-        super(name, target, range);
+    public function MethodTag(name:String, range:Range, methodType:String, isStatic:Boolean, isPublic:Boolean) {
+        super(name, range);
         var am = new StringMap([['method', false], ['get', true], ['set', true]]);
         this.isAccessor = am.get(methodType);
         this.isSetter = methodType === 'set';
@@ -922,14 +777,14 @@ public class TempVar extends Variable {
      * 临时变量的编码是下划线接32进制的序号
      */
     override public function toRawPython():String {
-        return '__r' + Identifier.encodeRadix32(this.index);
+        return '__r' + encodeRadix32(this.index);
     }
 
     /**
      * to string
      */
     override public function toString():String {
-        return 'temp[' + StrTool.str(this.index) + ']';
+        return 'temp[' + hex(id(this)) + '][' + StrTool.str(this.index) + ']';
     }
 
     /**

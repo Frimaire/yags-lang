@@ -1,9 +1,12 @@
 var {ArrayList, StrTool, printf} = import('.compat');
 var {StringMap} = import('.StringMap');
-var {CompileError, ElementPattern, Range, ConflictError, InternalError, XMLDumper} = import('.utils');
+var {ElementPattern, InternalError, XMLDumper} = import('.utils');
 var {SymbolTree, SymbolTreeNode} = import('.symboltree');
-var {Attribute, BuiltinVar, ClassFieldDescriptor, ClassTag, FunctionExpTag, FunctionTag, GlobalVar, Identifier, LocalVar, MethodTag, TempVar, Variable} = import('.identifier');
+var {Attribute, ClassFieldDescriptor, isKeyword, isSpecial} = import('.attribute');
+var {BuiltinVar, ClassTag, FunctionExpTag, FunctionTag, GlobalVar, LocalVar, MethodTag, TempVar, VarReference, encodeRadix32} = import('.variable');
 var {LineNumber, LineWriter, PyGenerator} = import('.pygen');
+var CAS = import('tools.cas');
+var {options} = import('tools.options');
 
 // please DO NOT delete the headers like this
 // #########= Element
@@ -13,10 +16,16 @@ var {LineNumber, LineWriter, PyGenerator} = import('.pygen');
  * The term "element" is used to distinguish between it and AST(from parser)'s
  */
 public class Element {
-    private static var st:SymbolTree = new SymbolTree();
-
     // for symbol tree library
-    public var _symbolTreeNode:SymbolTreeNode = null;
+    private var stnode:SymbolTreeNode = null;
+
+    public static function _getNode(e) {
+        return e.stnode;
+    }
+
+    public static function _setNode(e, node) {
+        e.stnode = node;
+    }
 
     /**
     * The range of this in the source code
@@ -60,21 +69,21 @@ public class Element {
      * the parent element of this
      */
     public function get parent():Element {
-        return Element.st.parent(this);
+        return theTree.parent(this);
     }
 
     /**
      * the previous sibling element of this
      */
     public function get previousSibling():Element {
-        return Element.st.previousSibling(this);
+        return theTree.previousSibling(this);
     }
 
     /**
      * the next sibling element of this
      */
     public function get nextSibling():Element {
-        return Element.st.nextSibling(this);
+        return theTree.nextSibling(this);
     }
 
     /**
@@ -148,21 +157,21 @@ public class Element {
      * removes the element from the tree
      */
     public function remove():void {
-        Element.st.remove(this);
+        theTree.remove(this);
     }
 
     /**
      * the first child.
      */
     public function get firstChild():Element {
-        return Element.st.firstChild(this);
+        return theTree.firstChild(this);
     }
 
     /**
      * the last child.
      */
     public function get lastChild():Element {
-        return Element.st.lastChild(this);
+        return theTree.lastChild(this);
     }
 
     /**
@@ -174,7 +183,7 @@ public class Element {
         // `newObject` is now the previous sibling of `referenceObject`.
         // SymbolTree will not remove the element automatically
         e.remove();
-        Element.st.insertBefore(this, e);
+        theTree.insertBefore(this, e);
     }
 
     /**
@@ -185,7 +194,7 @@ public class Element {
         // insertAfter(referenceObject, newObject)
         // `newObject` is now the next sibling of `referenceObject`.
         e.remove();
-        Element.st.insertAfter(this, e);
+        theTree.insertAfter(this, e);
     }
 
     /**
@@ -197,7 +206,7 @@ public class Element {
         // appendChild(referenceObject, newObject)
         // `newObject` is now the last child of `referenceObject`.
         e.remove();
-        Element.st.appendChild(this, e);
+        theTree.appendChild(this, e);
     }
 
     /**
@@ -209,7 +218,7 @@ public class Element {
         // prependChild(referenceObject, newObject)
         // `newObject` is now the first child of `referenceObject`.
         e.remove();
-        Element.st.prependChild(this, e);
+        theTree.prependChild(this, e);
     }
 
     /**
@@ -231,7 +240,7 @@ public class Element {
      */
     public function forEachChild(callback):void {
         var v = new ArrayList();
-        var it = Element.st.childrenIterator(this, false);
+        var it = theTree.childrenIterator(this, false);
         var k = 0;
         // cache the elements at first
         while(true) {
@@ -367,10 +376,12 @@ public class Element {
     * the constructor
     */
     public function Element(range:Range) {
-        Element.st.initialize(this);
+        theTree.initialize(this);
         this.range = range;
     }
 }
+
+var theTree = new SymbolTree(Element._getNode, Element._setNode);
 
 // #########= ExpressionElement
 
@@ -1257,7 +1268,7 @@ public class BaseFunctionElement extends Element {
      * 当前函数的全局id串, 经过编码
      */
     public function get functionToken():String {
-        return Identifier.encodeRadix32(this.functionId);
+        return encodeRadix32(this.functionId);
     }
 
     /**
@@ -1330,12 +1341,15 @@ public class BaseFunctionElement extends Element {
      * @param {FunctionTag} tag, the tag of function
      * @param {Range} range
      */
-    public function registerFunctionDefinition(tag:FunctionTag, range:Range = null):void {
+    public function registerFunctionDefinition(tag:FunctionTag):void {
+        if(!(tag instanceof FunctionTag)) {
+            throw new InternalError('Not a function tag!');
+        }
         // check if exists
         var name = tag.name;
         var v = this.getLocal(name);
         if(v !== null) {
-            throw new ConflictError("Duplicate function definition: %s", range, v.range, name);
+            CAS.conflict(name, v.range, tag.range);
         }
         this.setLocal(name, tag);
     }
@@ -1349,9 +1363,10 @@ public class BaseFunctionElement extends Element {
         // check if exists
         var v = this.getLocal(name);
         if(v !== null) {
-            throw new ConflictError("Identifier '%s' has already been declared", range, v.range, name);
+            CAS.conflict(name, v.range, range);
         }
-        v = new LocalVar(name, this, range);
+        v = new LocalVar(name, range);
+        v.at = this;
         this.setLocal(name, v);
         return v;
     }
@@ -1600,7 +1615,7 @@ public class BinaryLogicalElement extends ExpressionElement {
      * check if this is a complex expression
      */
     override public function get complex():Boolean {
-        if(this.theGlobal.enableImplicitBooleanConversion) {
+        if(options.enableImplicitBooleanConversion) {
             // should cache the value
             return true;
         }
@@ -1641,7 +1656,7 @@ public class BinaryLogicalElement extends ExpressionElement {
         var a = this.firstChild;
         var b = this.lastChild;
         // coerce to the boolean type if implicit boolean conversion is not enabled
-        if(!this.theGlobal.enableImplicitBooleanConversion && (op === '&&' || op === '||')) {
+        if(!options.enableImplicitBooleanConversion && (op === '&&' || op === '||')) {
             var chk = CallElement.callGlobal('__x_cb', a);
             this.prepend(chk);
             this.checkStruct();
@@ -1713,7 +1728,7 @@ public class BinaryLogicalElement extends ExpressionElement {
      */
     override public function simplifyExpressions():void {
         this.checkStruct();
-        if(this.theGlobal.enableImplicitBooleanConversion) {
+        if(options.enableImplicitBooleanConversion) {
             this.simplifyExpressionsImplicitBooleanConversion();
             return;
         }
@@ -2088,7 +2103,7 @@ public class CallElement extends ExpressionElement {
         if(!supcall) {
             callee.checkVariables();
         } else if(!this.allowSuperCall) {
-            throw new CompileError("super() statement unexpected here", this.range);
+            CAS.error(this.range, 'super() statement unexpected here');
         }
         argv.checkVariables();
         // check argv at first to reject super(this)
@@ -2385,7 +2400,7 @@ public class ClassElement extends BaseFunctionElement {
      * @param {FunctionTag} tag, the tag of method
      * @param {Range} range
      */
-    override public function registerFunctionDefinition(tag:FunctionTag, range:Range = null):void {
+    override public function registerFunctionDefinition(tag:FunctionTag):void {
         // as operator is not supported
         function coerce(tag):MethodTag {
             if(!(tag instanceof MethodTag)) {
@@ -2399,7 +2414,7 @@ public class ClassElement extends BaseFunctionElement {
         var n = tag2.name;
         var cfd = o.get(n, null);
         if(cfd === null) {
-            cfd = new ClassFieldDescriptor(n, st);
+            cfd = new ClassFieldDescriptor(n, tag2.range, st);
             o.set(n, cfd);
         }
         cfd.meetMethod(tag2);
@@ -2426,7 +2441,7 @@ public class ClassElement extends BaseFunctionElement {
         var o = st ? this.staticMembers : this.instanceMembers;
         var cfd = o.get(n, null);
         if(cfd === null) {
-            cfd = new ClassFieldDescriptor(n, st);
+            cfd = new ClassFieldDescriptor(n, range, st);
             o.set(n, cfd);
         }
         cfd.meetProperty(isPublic, range);
@@ -2494,8 +2509,8 @@ public class ClassElement extends BaseFunctionElement {
         var im = this.instanceMembers;
 
         gen.blank();
-        var sline = new LineNumber();
-        gen.logLineNumber(sline);
+        // var sline = new LineNumber();
+        // gen.logLineNumber(sline);
 
         // 函数声明
         var writer = new LineWriter();
@@ -2749,10 +2764,9 @@ public class ClassElement extends BaseFunctionElement {
         gen.TAB();
 
         gen.comment(
-            'end class factory %s, %s (line %l)',
+            'end class factory %s, %s',
             this.tag.toPython(),
-            this.tag.toFactoryName(),
-            sline
+            this.tag.toFactoryName()
         );
     }
 
@@ -2769,9 +2783,10 @@ public class ClassElement extends BaseFunctionElement {
     /**
      * the constructor
      */
-    public function ClassElement(name:String, hasSuper:Boolean, isPublic:Boolean, tagRange:Range, range:Range) {
+    public function ClassElement(tag:ClassTag, hasSuper:Boolean, isPublic:Boolean, range:Range) {
         super(range);
-        this.tag = new ClassTag(name, this, tagRange);
+        this.tag = tag;
+        tag.at = this;
         this.isPublic = isPublic;
         this.hasSuper = hasSuper;
         this.append(new MethodGroupElement());
@@ -3052,7 +3067,7 @@ public class ConditionElement extends Element {
         // 条件式要求严格布尔类型, 也就是只接受true和false
         // 因此要将条件用coerceBoolean(__x_cb)包裹, 进行类型检查以确保严格布尔判断
         var exp = this.firstChild;
-        var cc = CallElement.callGlobal(this.theGlobal.enableImplicitBooleanConversion ? '__x_tob' : '__x_cb', exp);
+        var cc = CallElement.callGlobal(options.enableImplicitBooleanConversion ? '__x_tob' : '__x_cb', exp);
         this.append(cc);
         this.checkStruct();
     }
@@ -3137,7 +3152,7 @@ public class DeleteElement extends StatementElement {
      */
     override public function checkVariables():void {
         if(!(this.firstChild instanceof LvalueElement)) {
-            throw new CompileError('only left value can be deleted', this.range);
+            CAS.error(this.range, 'only left value can be deleted');
         }
         super.checkVariables();
     }
@@ -3661,7 +3676,8 @@ public class ExpressionStatementElement extends StatementElement {
         super.simplifyExpressions();
         // 如果简化后该表达式已经没有副作用了, 那么就可以去掉
         // 比如a++会被全部简化出去, 只剩临时变量
-        if(this.lastChild.tempVarOnly) {
+        var c = this.lastChild;
+        if(c.tempVarOnly || (c instanceof VarElement && c.declarator)) {
             this.remove();
         }
     }
@@ -3725,7 +3741,7 @@ public class FinallyElement extends BodyElement {
         if(e instanceof ReturnElement ||
            e instanceof BreakElement ||
            e instanceof ContinueElement) {
-            throw new CompileError('Jump statements occur in finally block', this.range);
+            CAS.error(this.range, 'Jump statements occur in finally block');
         }
         if(e instanceof ExpressionElement) {
             return;
@@ -3773,7 +3789,7 @@ public class FinallyElement extends BodyElement {
  * 2. 变量定义: 对本级定义的闭包变量进行初始化
  * 3. 参数展开: 对于闭包访问的参数进行重命名(即赋值给变量槽)
  * 4. 函数正文: 即函数体
- * 5. 变量补定义: 对于没有被闭包访问, 又没有在本级写入的局部变量进行定义. 后续考虑对这种情况提出警告或错误.
+ * 5. 变量补定义: 对于没有被闭包访问, 又没有在本级写入的局部变量进行定义. 
  * 其中, 内层函数定义(FunctionGroupElement), 参数展开(ParameterGroupElement)和函数正文(FunctionBodyElement)使用专门的元素进行表示, 而其他部分只在代码生成时输出.
  */
 public class FunctionElement extends BaseFunctionElement {
@@ -3855,8 +3871,8 @@ public class FunctionElement extends BaseFunctionElement {
      */
     override public function generatePython(gen:PyGenerator):void {
         gen.blank();
-        var sline = new LineNumber();
-        gen.logLineNumber(sline);
+        // var sline = new LineNumber();
+        // gen.logLineNumber(sline);
 
         // 函数声明
         var writer = new LineWriter();
@@ -3894,8 +3910,8 @@ public class FunctionElement extends BaseFunctionElement {
         var nwv = false;
         this.forEachLocalVar(function(v, n, o) {
             if(!v.closure && !v.assigned) {
+                CAS.warn(v.range, 'Variable %s is never initialized.', v.name);
                 nwv = true;
-                return false;
             }
         });
         if(nwv) {
@@ -3911,9 +3927,8 @@ public class FunctionElement extends BaseFunctionElement {
         gen.TAB();
 
         gen.comment(
-            'end function %s (line %l)',
-            this.tag.toComment(),
-            sline
+            'end function %s',
+            this.tag.toComment()
         );
     }
 
@@ -3956,7 +3971,7 @@ public class FunctionDefinitionElement extends FunctionElement {
      */
     override public function declareVariable():void {
         // 注册当前函数的tag
-        this.parentFunction.registerFunctionDefinition(this.tag, this.tag.range);
+        this.parentFunction.registerFunctionDefinition(this.tag);
         // 如果是公开的, 就向全局注册公开成员
         if(this.isPublic) {
             if(!(this.parentFunction instanceof GlobalElement)) {
@@ -3982,9 +3997,10 @@ public class FunctionDefinitionElement extends FunctionElement {
      * @param {Range} tagRange
      * @param {Range} range
      */
-    public function FunctionDefinitionElement(name:String, isPublic:Boolean, tagRange:Range, range:Range) {
+    public function FunctionDefinitionElement(tag:FunctionTag, isPublic:Boolean, range:Range) {
         super(range);
-        this.tag = new FunctionTag(name, this, tagRange);
+        this.tag = tag;
+        tag.at = this;
         this.isPublic = isPublic;
         this.append(new FunctionGroupElement());
         this.append(new ParameterGroupElement());
@@ -3998,9 +4014,8 @@ public class FunctionDefinitionElement extends FunctionElement {
  * function expression
  * 
  * 函数表达式
- * 在Python中, 并没有函数表达式, 因此只能使用一个具名函数来表示
- * 注意, FunctionExpressionElement应放入上级函数的定义区(functionDefinitions)内
- * 而在原函数表达式的位置应使用一个VarElement替代
+ * 在Python中, 并没有函数表达式, 因此只能使用一个具名函数来表示.
+ * 在最终的代码中FunctionExpressionElement应放入上级函数的定义区(functionDefinitions)内.
  */
 public class FunctionExpressionElement extends FunctionElement {
     /**
@@ -4008,12 +4023,86 @@ public class FunctionExpressionElement extends FunctionElement {
      * @param {String} name, null for anonymous function expression
      * @param {Range} range
      */
-    public function FunctionExpressionElement(name:String, tagRange:Range, range:Range) {
+    public function FunctionExpressionElement(tag:FunctionExpTag, range:Range) {
         super(range);
-        this.tag = new FunctionExpTag(name, this, tagRange);
+        this.tag = tag;
+        tag.at = this;
         this.append(new FunctionGroupElement());
         this.append(new ParameterGroupElement());
         this.append(new BodyElement(null));
+    }
+}
+
+// #########= FunctionExpressionContainerElement
+
+/**
+ * function expression container as a element
+ * 
+ * 由于FunctionExpressionElement不继承自ExpressionElement, 因而不能直接放在表达式里. 
+ * 解析器在生成IR时, 先把FunctionExpressionElement放在FunctionExpressionContainerElement内,
+ * 到了declareVariable阶段, 会进行提升操作, 
+ * 即将该元素内部的FunctionExpressionElement放入上级函数的定义区, 
+ * 而在原来的位置, 使用一个连接到函数名的VarElement替代.
+ */
+public class FunctionExpressionContainerElement extends ExpressionElement {
+    /**
+     * the tag of the function
+     */
+    public function get tag() {
+        return this.functionBody.tag;
+    }
+    
+    /**
+     * the associated named function
+     */
+    public function get functionBody() {
+        return this.firstChild;
+    }
+
+    /**
+     * to python string
+     * @param {LineWriter} writer
+     * @param {String} contchr
+     * @param {Number} parentType
+     */
+    override public function writePython(writer:LineWriter, contchr:*, parentType:Number = 0):void {
+        // must be hoisted
+        throw new InternalError('cannot generate the code for FunctionExpressionElement');
+    }
+    
+    /**
+     * the required struture of this
+     */
+    override public function get structList():ArrayList {
+        return new ArrayList([
+            new ElementPattern(FunctionExpressionElement, 1, false)
+        ]);
+    }
+    
+    /**
+     * declare this variable
+     * (pre-stage1)
+     * Hoist the named function to the functionDefinitions of its parent function.
+     */
+    override public function declareVariable():void {
+        var tag = VarElement.getFunctionExp(this.tag);
+        // put the function body to the parent function's definition area
+        var fn = this.functionBody;
+        this.theFunction.functionDefinitions.append(fn);
+        fn.declareVariable();
+        // put the function tag here
+        this.replaceWith(tag);
+        tag.declareVariable();
+    }
+    
+    /**
+     * the constructor
+     * @param {String} name, null for anonymous function expression
+     * @param {Range} range
+     */
+    public function FunctionExpressionContainerElement(tag:FunctionExpTag, range:Range) {
+        super(range);
+        this.append(new FunctionExpressionElement(tag, range));
     }
 }
 
@@ -4075,16 +4164,6 @@ public class GlobalElement extends BaseFunctionElement {
      * id of the next function
      */
     private var functionCounter:Number = 0;
-
-    /**
-     * compile option enableImplicitBooleanConversion
-     */
-    public var enableImplicitBooleanConversion:Boolean = false;
-
-    /**
-     * compile option, enable ndarray indexing such as a[1, 2]
-     */
-    public var enableTupleSubscription:Boolean = false;
 
     /**
      * the name of this element
@@ -4197,7 +4276,7 @@ public class GlobalElement extends BaseFunctionElement {
         var name = tag.name;
         var v = this.getLocal(name);
         if(v !== null) {
-            throw new ConflictError("Duplicate class definition: %s", range, v.range, name);
+            CAS.conflict(name, v.range, tag.range);
         }
         this.setLocal(name, tag);
     }
@@ -4206,19 +4285,19 @@ public class GlobalElement extends BaseFunctionElement {
      * declare the member as public
      */
     public function declarePublic(name:String, range:Range):void {
-        var ai = new Identifier(name, range);
-        if(ai.isSpecial) {
-            throw new CompileError('public name must be a valid Python identifier: %s', range, name);
+        if(isSpecial(name) || isKeyword(name)) {
+            CAS.error(range, 'public name must be a valid Python identifier: %s', name);
         }
         var an = new ArrayList(name);
         if(an.get(0) === '_' && an.get(1) == '_') {
             // 以下划线加数字开头的变量名是保留的
             // 局部变量不受影响, 因为会自动重命名
-            throw new CompileError('public name starts with double underscore is reserved: %s', range, name);
+            CAS.error(range, 'public name starts with double underscore is reserved: %s', name);
         }
         var ov = this.exports.get(name, false);
         if(ov) {
-            throw new ConflictError('Duplicate public variable declaration: %s', range, ov.range, name);
+            CAS.delayedError(range, 'Duplicate public variable declaration: %s', name);
+            CAS.note(ov.range, "'%s' has previously declared here.", name);
         }
         this.exports.set(name, true);
     }
@@ -4233,7 +4312,7 @@ public class GlobalElement extends BaseFunctionElement {
     override public function referVar(name:String, range:Range = null):Variable {
         if(name === 'eval') {
             // 禁止eval
-            throw new CompileError('Eval is evil', range);
+            CAS.error(range, 'Eval is evil');
         }
         // check if exists
         var v = this.getLocal(name);
@@ -4245,7 +4324,7 @@ public class GlobalElement extends BaseFunctionElement {
         if(v2 !== null) {
             return v2;
         }
-        throw new CompileError('%s is not defined', range, name);
+        CAS.error(range, '%s is not defined', name);
     }
 
     /**
@@ -4373,7 +4452,6 @@ public class GlobalElement extends BaseFunctionElement {
     public function GlobalElement(range:Range) {
         super(range);
         var bis = this.builtins;
-        var self
         (new ArrayList(["ArithmeticError", "AssertionError", "AttributeError", "BaseException", "BufferError", "BytesWarning", "DeprecationWarning", "EOFError", "Ellipsis", "EnvironmentError", "Exception", "False", "FloatingPointError", "FutureWarning", "GeneratorExit", "IOError", "ImportError", "ImportWarning", "IndentationError", "IndexError", "KeyError", "KeyboardInterrupt", "LookupError", "MemoryError", "NameError", "None", "NotImplemented", "NotImplementedError", "OSError", "OverflowError", "PendingDeprecationWarning", "ReferenceError", "RuntimeError", "RuntimeWarning", "StandardError", "StopIteration", "SyntaxError", "SyntaxWarning", "SystemError", "SystemExit", "TabError", "True", "TypeError", "UnboundLocalError", "UnicodeDecodeError", "UnicodeEncodeError", "UnicodeError", "UnicodeTranslateError", "UnicodeWarning", "UserWarning", "ValueError", "Warning", "ZeroDivisionError", "__debug__", "__doc__", "__import__", "__name__", "__package__", "abs", "all", "any", "apply", "basestring", "bin", "bool", "buffer", "bytearray", "bytes", "callable", "chr", "classmethod", "cmp", "coerce", "compile", "complex", "copyright", "credits", "delattr", "dict", "dir", "divmod", "enumerate", "eval", "execfile", "exit", "file", "filter", "float", "format", "frozenset", "getattr", "globals", "hasattr", "hash", "help", "hex", "id", "input", "int", "intern", "isinstance", "issubclass", "iter", "len", "license", "list", "locals", "long", "map", "max", "memoryview", "min", "next", "object", "oct", "open", "ord", "pow", "print", "property", "quit", "range", "raw_input", "reduce", "reload", "repr", "reversed", "round", "set", "setattr", "slice", "sorted", "staticmethod", "str", "sum", "super", "tuple", "type", "unichr", "unicode", "vars", "xrange", "zip", "BlockingIOError", "BrokenPipeError", "ChildProcessError", "ConnectionAbortedError", "ConnectionError", "ConnectionRefusedError", "ConnectionResetError", "FileExistsError", "FileNotFoundError", "InterruptedError", "IsADirectoryError", "NotADirectoryError", "PermissionError", "ProcessLookupError", "RecursionError", "ResourceWarning", "StopAsyncIteration", "TimeoutError", "__build_class__", "__loader__", "__spec__", "ascii", "exec", "NaN", "Infinity"])).forEach(this.setBuiltins);
 
         this.append(new FunctionGroupElement());
@@ -4496,12 +4574,12 @@ public class IfBlockElement extends StatementElement {
     * @param {PyGenerator} gen
     */
     override public function generatePython(gen:PyGenerator):void {
-        var sline = new LineNumber();
-        gen.logLineNumber(sline);
+        // var sline = new LineNumber();
+        // gen.logLineNumber(sline);
         this.forEachChild(function(e, k, t) {
             e.generatePython(gen);
         });
-        gen.comment('end if (line %l)', sline);
+        gen.comment('end if');
     }
 
     /**
@@ -4736,7 +4814,7 @@ public class InstanceGroupElement extends BaseFunctionElement {
      * @param {FunctionTag} tag, the tag of function
      * @param {Range} range
      */
-    override public function registerFunctionDefinition(tag:FunctionTag, range:Range = null):void {
+    override public function registerFunctionDefinition(tag:FunctionTag):void {
         throw new InternalError('register function definition in class property initializer');
     }
 
@@ -4766,8 +4844,8 @@ public class InstanceGroupElement extends BaseFunctionElement {
      */
     override public function generatePython(gen:PyGenerator):void {
         gen.blank();
-        var sline = new LineNumber();
-        gen.logLineNumber(sline);
+        // var sline = new LineNumber();
+        // gen.logLineNumber(sline);
 
         gen.writeln('def __csu(this, *argv):');
 
@@ -4799,8 +4877,7 @@ public class InstanceGroupElement extends BaseFunctionElement {
         gen.TAB();
 
         gen.comment(
-            'end instance initializer and super constructor __csu (line %l)',
-            sline
+            'end instance initializer and super constructor __csu'
         );
     }
 
@@ -4877,8 +4954,8 @@ public class InstanceInitializerElement extends StatementElement {
      * (pre-stage1)
      */
     override public function declareVariable():void {
-        this.checkStruct();
         this.theClass.registerProperty(this.attribute.name, this.isPublic, false, this.attribute.range);
+        super.declareVariable();
     }
 
     /**
@@ -5158,7 +5235,7 @@ public class MagicCallElement extends ExpressionElement {
         var allowFns = new StringMap();
         allowFns.sets(['apply', 'bind', 'drop', 'every', 'filter', 'find', 'findIndex', 'flatMap', 'forEach', 'has', 'isEmpty', 'join', 'length', 'map', 'pop', 'push', 'reduce', 'shift', 'slice', 'some', 'splice', 'take', 'unshift'], true);
         if(!allowFns.has(name)) {
-            throw new CompileError('@%s is not a valid magic method', range, name);
+            CAS.error(range, '@%s is not a valid magic method', name);
         }
         this.name = name;
     }
@@ -5232,14 +5309,14 @@ public class MethodElement extends FunctionElement {
         // 检查构造器类型
         if(this.isConstructor) {
             if(!tag.isPublic) {
-                throw new CompileError('Class constructor may not be a private method');
+                CAS.error(tag.range, 'Class constructor may not be a private method');
             }
             if(tag.isAccessor) {
-                throw new CompileError('Class constructor may not be an accessor');
+                CAS.error(tag.range, 'Class constructor may not be an accessor');
             }
         } else {
             // 将当前方法注册到类 (构造器不用注册)
-            this.parentFunction.registerFunctionDefinition(this.tag, this.tag.range);
+            this.parentFunction.registerFunctionDefinition(this.tag);
         }
         super.declareVariable();
     }
@@ -5252,7 +5329,7 @@ public class MethodElement extends FunctionElement {
             return;
         }
         if(this.smet) {
-            throw new CompileError('Super constructor may only be called once', range);
+            CAS.error(range, 'Super constructor may only be called once');
         }
         this.smet = true;
     }
@@ -5267,7 +5344,7 @@ public class MethodElement extends FunctionElement {
         // 在super()之前抛异常应该是可以的, 尽管ActionScript不允许
         // JAVA在不久前的JEP 447中允许了这一点
         if(!this.smet) {
-            throw new CompileError('Super statement cannot occur after a this, super or return statement', range);
+            CAS.error(range, 'Super statement cannot occur after a this, super or return statement');
         }
     }
 
@@ -5278,7 +5355,7 @@ public class MethodElement extends FunctionElement {
         super.checkVariables();
         // 如果是构造器检查是否有super
         if(!this.smet && this.allowSuperCall) {
-            throw new CompileError('Must call super constructor in derived class before returning from derived constructor', this.range);
+            CAS.error(this.range, 'Must call super constructor in derived class before returning from derived constructor');
         }
     }
 
@@ -5297,7 +5374,7 @@ public class MethodElement extends FunctionElement {
         if(this.tag.name !== null && this.tag.name === name) {
             // for constructor, bubble to the class
             if(!this.isConstructor) {
-                throw new CompileError('\'this\' is required for referring the method itself', range);
+                CAS.error(range, '\'this\' is required for referring the method itself');
             }
         }
         return this.parentFunction.referVar(name, range);
@@ -5321,6 +5398,16 @@ public class MethodElement extends FunctionElement {
     }
 
     /**
+     * dump to XML code
+     */
+    override public function dump(ctx:XMLDumper):void {
+        ctx.attr('public', this.tag.isPublic); 
+        ctx.attr('static', this.tag.isStatic); 
+        ctx.attr('type', this.tag.isAccessor ? (this.tag.isSetter ? 'set' : 'get') : 'method');
+        super.dump(ctx);
+    }
+
+    /**
      * the constructor
      * @param {String} name
      * @param {Boolean} isStatic
@@ -5328,9 +5415,9 @@ public class MethodElement extends FunctionElement {
      * @param {Range} tagRange
      * @param {Range} range
      */
-    public function MethodElement(name:String, methodType:String, isStatic:Boolean, isPublic:Boolean, tagRange:Range, range:Range) {
+    public function MethodElement(tag: MethodTag, range:Range) {
         super(range);
-        var tag = new MethodTag(name, methodType, isStatic, isPublic, this, tagRange);
+        tag.at = this;
         this.tag = tag;
         this.append(new FunctionGroupElement());
         // 静态方法也是有this指针的, 只不过这个指针指向的是静态类体且对用户代码不可访问
@@ -5470,10 +5557,10 @@ public class MethodParameterGroupElement extends ParameterGroupElement {
             pcnt++;
         });
         if(tag.isSetter && pcnt !== 1) {
-            throw new CompileError('Setter must have exactly one formal parameter', this.range);
+            CAS.error(this.range, 'Setter must have exactly one formal parameter');
         }
         if(tag.isAccessor && !tag.isSetter && pcnt !== 0) {
-            throw new CompileError('Getter must not have any formal parameters', this.range);
+            CAS.error(this.range, 'Getter must not have any formal parameters');
         }
         super.declareVariable();
     }
@@ -5829,7 +5916,7 @@ public class ParameterAssignElement extends Element {
         p.checkVariables();
         v.checkVariables();
         if(v.complex || !v.constantOnly) {
-            throw new CompileError('Default parameter must be constant', v.range);
+            CAS.error(v.range, 'Default parameter must be constant');
         }
     }
 
@@ -5895,6 +5982,7 @@ public class ParameterElement extends Element {
      */
     override public function declareVariable():void {
         this.target = this.theFunction.registerLocalVar(this.source, this.range);
+        super.declareVariable();
     }
 
     /**
@@ -6213,7 +6301,7 @@ public class StaticGroupElement extends BaseFunctionElement {
      * @param {FunctionTag} tag, the tag of function
      * @param {Range} range
      */
-    override public function registerFunctionDefinition(tag:FunctionTag, range:Range = null):void {
+    override public function registerFunctionDefinition(tag:FunctionTag):void {
         throw new InternalError('register function definition in class property initializer');
     }
 
@@ -6235,7 +6323,7 @@ public class StaticGroupElement extends BaseFunctionElement {
     override public function referVar(name:String, range:Range = null):Variable {
         // reject class name
         if(this.theClass.tag.name === name) {
-            throw new CompileError('cannot access the class name %s in the static property initializer', range, name);
+            CAS.error(range, 'cannot access the class name %s in the static property initializer', name);
         }
         return this.theClass.referVar(name, range);
     }
@@ -6247,8 +6335,8 @@ public class StaticGroupElement extends BaseFunctionElement {
      */
     override public function generatePython(gen:PyGenerator):void {
         gen.blank();
-        var sline = new LineNumber();
-        gen.logLineNumber(sline);
+        // var sline = new LineNumber();
+        // gen.logLineNumber(sline);
 
         // private fields(__csp) is a local var in class factory
         gen.writeln('def __csi(this):');
@@ -6268,8 +6356,7 @@ public class StaticGroupElement extends BaseFunctionElement {
         gen.TAB();
 
         gen.comment(
-            'end static initializer __csi (line %l)',
-            sline
+            'end static initializer __csi'
         );
     }
 
@@ -6347,6 +6434,7 @@ public class StaticInitializerElement extends StatementElement {
     override public function declareVariable():void {
         this.checkStruct();
         this.theClass.registerProperty(this.attribute.name, this.isPublic, true, this.attribute.range);
+        super.declareVariable();
     }
 
     /**
@@ -6541,7 +6629,7 @@ public class SuperElement extends ExpressionElement {
     override public function checkVariables():void {
         this.checkStruct();
         if(!this.allowSuper) {
-            throw new CompileError("'super' keyword unexpected here", this.range);
+            CAS.error(this.range, '"super" keyword unexpected here');
         }
         // if this statement is in a constructor, notify it
         var fn = this.theFunction;
@@ -6600,7 +6688,7 @@ public class TernaryOperatorElement extends ExpressionElement {
         this.checkStruct();
         super.functionalize();
         var cond = this.firstChild;
-        var cc = CallElement.callGlobal(this.theGlobal.enableImplicitBooleanConversion ? '__x_tob' : '__x_cb', cond);
+        var cc = CallElement.callGlobal(options.enableImplicitBooleanConversion ? '__x_tob' : '__x_cb', cond);
         this.prepend(cc);
         this.checkStruct();
     }
@@ -6728,7 +6816,7 @@ public class ThisElement extends ExpressionElement {
     override public function checkVariables():void {
         this.checkStruct();
         if(!this.allowThis) {
-            throw new CompileError("'this' expression must be used inside class instance methods", this.range);
+            CAS.error('"this" expression must be used inside class instance methods', this.range);
         }
         // if this statement is in a constructor, notify it
         var fn = this.theFunction;
@@ -6840,10 +6928,10 @@ public class TryBlockElement extends BlockElement {
      */
     override public function generatePython(gen:PyGenerator):void {
         this.checkStruct();
-        var sline = new LineNumber();
-        gen.logLineNumber(sline);
+        // var sline = new LineNumber();
+        // gen.logLineNumber(sline);
         super.generatePython(gen);
-        gen.comment('end try (line %l)', sline);
+        gen.comment('end try');
     }
 
     /**
@@ -7016,7 +7104,7 @@ public class UniaryOperatorElement extends ExpressionElement {
             return;
         }
         var exp = this.firstChild;
-        var cc = CallElement.callGlobal(n ? '__x_typ' : (this.theGlobal.enableImplicitBooleanConversion ? '__x_tnb' : '__x_not'), exp);
+        var cc = CallElement.callGlobal(n ? '__x_typ' : (options.enableImplicitBooleanConversion ? '__x_tnb' : '__x_not'), exp);
         this.replaceWith(cc);
     }
 
@@ -7069,7 +7157,7 @@ public class UniaryOperatorElement extends ExpressionElement {
     public function UniaryOperatorElement(source:String, range:Range) {
         super(range);
         if(source === 'delete') {
-            throw new CompileError('delete can only be a standalone statement', range);
+            CAS.error(range, 'delete can only be a standalone statement');
         }
         this.source = source;
     }
@@ -7187,65 +7275,6 @@ public class UpdateElement extends ExpressionElement {
     }
 }
 
-// #########= VarDeclaratorElement
-
-/**
- * var without initializer
- */
-public class VarDeclaratorElement extends StatementElement {
-    /**
-     * the name of this element
-     */
-    override public function get typeName():String {
-        return 'vardecl';
-    }
-
-    /**
-     * the required struture of this
-     */
-    override public function get structList():ArrayList {
-        return new ArrayList([
-            new ElementPattern(VarElement, 1, false), // left value
-        ]);
-    }
-
-    /**
-     * check the struture of this
-     */
-    override public function checkStruct():void {
-        super.checkStruct();
-        var v = this.firstChild;
-        if(!v.declarator) {
-            throw new InternalError('malformed structure in VarDeclaratorElement (mismatched declarator)');
-        }
-    }
-
-    /**
-     * declare this variable
-     * (pre-stage1)
-     */
-    override public function declareVariable():void {
-        this.checkStruct();
-        super.declareVariable();
-    }
-
-    /**
-     * walk stage 2
-     */
-    override public function simplifyExpressions():void {
-        // now, this is useless
-        this.remove();
-    }
-
-    /**
-    * the constructor
-    * @param {Range} range, the range of the expresion
-    */
-    public function VarDeclaratorElement(range:Range) {
-        super(range);
-    }
-}
-
 // #########= VarElement
 
 /**
@@ -7254,17 +7283,11 @@ public class VarDeclaratorElement extends StatementElement {
 public class VarElement extends LvalueElement {
     private var _declarator:Boolean;
 
-    /**
-     * name of the variable
-     */
-    private var source:String;
+    // removed .source
+    // private var source:String;
 
-    /**
-     * the Variable
-     *
-     * 该表达式引用的变量, 在checkWrite, checkVariables时会根据this.source查找到实际的变量
-     */
-    private var target:Variable = null;
+    // the Variable referenced by this
+    private var tag:Variable = null;
 
     /**
     * the name of this element
@@ -7295,7 +7318,7 @@ public class VarElement extends LvalueElement {
     */
     override public function get tempVarOnly():Boolean {
         // 临时变量, this或者单纯的函数名都不会产生副作用
-        return this.target instanceof TempVar || this.target instanceof FunctionTag;
+        return this.tag instanceof TempVar || this.tag instanceof FunctionTag || (this.tag instanceof VarReference) && this.tag.tempVarOnly;
     }
 
     /**
@@ -7305,10 +7328,19 @@ public class VarElement extends LvalueElement {
      * 如果需要就声明变量. 
      */
     override public function declareVariable():void {
-        if(!this.declarator) {
+        super.declareVariable();
+        // TODO: use specified type instead of VarReference for declarator
+        // replace the VarReference for declarator
+        if(this.declarator) {
+            var {name, range} = this.tag;
+            this.tag = this.theFunction.registerLocalVar(name, range);
             return;
         }
-        this.target = this.theFunction.registerLocalVar(this.source, this.range);
+        // set the at if VarReference
+        if(this.tag instanceof VarReference) {
+            this.tag.at = this.theFunction;
+            return;
+        }
     }
 
     /**
@@ -7316,11 +7348,7 @@ public class VarElement extends LvalueElement {
     * (stage 1)
     */
     override public function checkVariables():void {
-        var v = this.target;
-        if(v === null) {
-            v = this.theFunction.referVar(this.source, this.range);
-            this.target = v;
-        }
+        var v = this.tag;
         v.read(this.theFunction, this.range);
     }
 
@@ -7328,11 +7356,7 @@ public class VarElement extends LvalueElement {
      * check write variable
      */
     override public function checkWrite():void {
-        var v = this.target;
-        if(v === null) {
-            v = this.theFunction.referVar(this.source, this.range);
-            this.target = v;
-        }
+        var v = this.tag;
         v.write(this.theFunction, this.range);
     }
 
@@ -7359,9 +7383,7 @@ public class VarElement extends LvalueElement {
         if(this.declarator) {
             throw new InternalError('declarator used in compound assignment');
         }
-        var v = new VarElement(this.source, false, this.range);
-        v.target = this.target;
-        return v;
+        return new VarElement(this.tag, false);
     }
 
     /**
@@ -7371,51 +7393,51 @@ public class VarElement extends LvalueElement {
      * @param {Number} parentType
      */
     override public function writePython(writer:LineWriter, contchr:*, parentType:Number = 0):void {
-        writer.write(this.target.toPython(), contchr);
+        writer.write(this.tag.toPython(), contchr);
     }
 
     /**
      * dump to XML code
      */
     override public function dump(ctx:XMLDumper):void {
-        ctx.attr('name', this.source);
-        ctx.attr('variable', this.target);
+        ctx.attr('name', this.tag === null ? "<anonymous>" : this.tag.name);
+        ctx.attr('variable', this.tag);
         super.dump(ctx);
     }
 
     /**
      * the constructor
      */
-    public function VarElement(source:String, declarator:Boolean, range:Range) {
-        super(range);
-        this.source = source;
+    public function VarElement(tag:Variable, declarator:Boolean) {
+        super(tag.range);
+        this.tag = tag;
         this._declarator = declarator;
     }
 
     /**
      * get a global variable
+     * "createGlobalVarElement" would be a better name...
      */
     public static function getGlobalVar(name:String):VarElement {
-        var tvs = new VarElement(name, false, null);
-        tvs.target = new GlobalVar(name);
+        var tvs = new VarElement(new GlobalVar(name), false);
         return tvs;
     }
 
     /**
      * get a global variable
+     * "createTempVarElement" would be a better name...
      */
     public static function getTempVar(tv:TempVar):VarElement {
-        var tvs = new VarElement('__r', false, null);
-        tvs.target = tv;
+        var tvs = new VarElement(tv, false);
         return tvs;
     }
 
     /**
      * get a function expression tag
+     * "createFunctionExpTag" would be a better name...
      */
     public static function getFunctionExp(tag:FunctionExpTag):VarElement {
-        var tvs = new VarElement('__e', false, null);
-        tvs.target = tag;
+        var tvs = new VarElement(tag, false);
         return tvs;
     }
 }
@@ -7487,8 +7509,8 @@ public class WhileElement extends StatementElement {
         var cond = this.firstChild.firstChild;
         var body = this.lastChild;
         var writer = new LineWriter();
-        var sline = new LineNumber();
-        gen.logLineNumber(sline);
+        // var sline = new LineNumber();
+        // gen.logLineNumber(sline);
         writer.write('while ', false);
         cond.writePython(writer, '\\', 1);
         writer.write(':', false);
@@ -7498,7 +7520,7 @@ public class WhileElement extends StatementElement {
         body.generatePython(gen);
         gen.TAB();
 
-        gen.comment('end while (line %l)', sline);
+        gen.comment('end while');
     }
 
     /**

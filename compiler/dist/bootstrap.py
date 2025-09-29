@@ -10,85 +10,73 @@ def __():
 
     # function definitions:
 
-    def dumpIR(ir, path = ((u"unknown-current.xml")), action = (True)):
-        if __x_cb(__x_not(action)):
-            return
-        # end if (line 14)
-        dmp = XMLDumper()
-        irxml = ir.dump(dmp)
-        xmlhead = (u"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-        xmltxt = xmlhead + dmp.toString()
-        f = open(path, (u"wb"))
-        try:
-            f.write(xmltxt.encode((u"utf-8")))
-        finally:
-            f.close()
-        # end try (line 22)
-    # end function dumpIR (line 13)
-
-    def dumpAST(ast, path = ((u"unknown-ast.json")), action = (True)):
-        if __x_cb(__x_not(action)):
-            return
-        # end if (line 30)
-        asttxt = __x_at_apply(json_stringify, [toDict(ast)], ({(u"indent"): 4}))
-        f = open(path, (u"wb"))
-        try:
-            f.write(asttxt.encode((u"utf-8")))
-        finally:
-            f.close()
-        # end try (line 35)
-    # end function dumpAST (line 29)
-
-    def process(srcdir, dstdir, modname, dump = (False), dast = (False), options = (None)):
-        srcpath = join(srcdir, modname + (u".as"))
-        dstpath = join(dstdir, modname + (u".py"))
-        print(srcpath + (u" -> ") + dstpath)
-        srcf = open(srcpath, (u"rb"))
-        try:
-            ascode = srcf.read().decode((u"utf-8"))
-        finally:
-            srcf.close()
-        # end try (line 47)
-        dfn = __x_at_slice(dstpath, 0, -3) if __x_cb(__x_eq(__x_at_slice(dstpath, -3), (u".py"))) else dstpath
-        ast = __x_at_apply(parse, [ascode], ({(u"options"): ({(u"attachComment"): True, (u"loc"): True, (u"range"): 
-True})}))
-        dumpAST(ast, dfn + (u"-ast.json"), dast)
-        ir = convertASTIR(ast, options)
-        try:
-            ir.checkAllStructure()
-            dumpIR(ir, dfn + (u"-initial.xml"), dump)
-            ir.declareVariable()
-            ir.checkAllStructure()
-            dumpIR(ir, dfn + (u"-declare-variable.xml"), dump)
-            ir.checkVariables()
-            ir.checkAllStructure()
-            dumpIR(ir, dfn + (u"-check-variable.xml"), dump)
-            ir.functionalize()
-            ir.checkAllStructure()
-            dumpIR(ir, dfn + (u"-functionalize.xml"), dump)
-            ir.simplifyExpressions()
-            ir.checkAllStructure()
-            dumpIR(ir, dfn + (u"-simplify-expressions.xml"), dump)
-        finally:
-            dumpIR(ir, dfn + (u"-current.xml"), dump)
-        # end try (line 57)
-        gen = PyGenerator()
-        ir.generatePython(gen)
-        pytxt = gen.finalize()
-        pyf = open(dstpath, (u"wb"))
-        try:
-            pyf.write(pytxt.encode((u"utf-8")))
-        finally:
-            pyf.close()
-        # end try (line 79)
-    # end function process (line 42)
-
     def copypy(srcdir, dstdir, modname):
-        srcpath = join(srcdir, modname + (u".py"))
-        dstpath = join(dstdir, modname + (u".py"))
-        print(srcpath + (u" -> ") + dstpath)
+        srcpath = joinPath(srcdir, modname + (u".py"))
+        dstpath = joinPath(dstdir, modname + (u".py"))
+        print((u"copy: ") + srcpath + (u" -> ") + dstpath)
         copyfile(srcpath, dstpath)
-    # end function copypy (line 86)
+    # end function copypy
+
+    def docompile(compilerpath, srcpath, dstpath):
+        print((u"compile: ") + srcpath + (u" -> ") + dstpath)
+        args = [(u"python3"), compilerpath, (u"-o"), dstpath, srcpath]
+        if __x_cb(DUMP_AST):
+            args.append((u"--dump-ast"))
+        # end if
+        if __x_cb(DUMP_IR):
+            args.append((u"--dump-ir"))
+        # end if
+        try:
+            subprocess.check_output(args)
+        except __x_errT as e:
+            if __x_cb(__x_iof(e, subprocess.CalledProcessError)):
+                print((u"compilation failed, compiler returns %d") % e.returncode)
+            else:
+                print((u"compilation failed: %s") % str(e))
+            # end if
+            exit(1)
+        # end try
+    # end function docompile
+
+    def process(compilerref, dstname):
+        def __f4_(dirpath, name, v):
+            if __x_cb(__x_eq(v, None)):
+                dstpath = joinPath(dstbase, dirpath)
+                print((u"mkdir: ") + dstpath)
+                mkdir(dstpath)
+                return
+            # end if
+            if __x_cb(v == 2):
+                srcpath = joinPath(SRCPATH, dirpath, name)
+                dstpath = joinPath(dstbase, dirpath, name)
+                print(srcpath + (u" -> ") + dstpath)
+                copytree(srcpath, dstpath)
+                return
+            # end if
+            if __x_cb(__x_eq(v, 1)):
+                srcpath = joinPath(SRCPATH, dirpath)
+                dstpath = joinPath(dstbase, dirpath)
+                copypy(srcpath, dstpath, name)
+                return
+            # end if
+            if __x_cb(__x_eq(v, 0)):
+                srcpath = joinPath(SRCPATH, dirpath, name + SRC_SUFFIX)
+                dstpath = joinPath(dstbase, dirpath, name + (u".py"))
+                docompile(compilerpath, srcpath, dstpath)
+                return
+            # end if
+            raise TypeError((u"Don't know how to process ") + str(dirpath) + (u"/") + str(name))
+        # end function <anonymous> (__f4_)
+
+        time_st = time()
+        compilerbase = joinPath(DSTPATH, compilerref)
+        compilerpath = joinPath(compilerbase, (u"compile.py"))
+        print((u"build: ") + dstname + (u", using ") + compilerpath)
+        dstbase = joinPath(DSTPATH, dstname)
+        walk(__f4_)
+        time_sp = time()
+        print((u"Time consumption in this stage: %f s") % (time_sp - time_st))
+    # end function process
 
     def readall(path):
         fp = open(path, (u"r"))
@@ -96,53 +84,79 @@ True})}))
             return fp.read()
         finally:
             fp.close
-        # end try (line 95)
-    # end function readall (line 93)
+        # end try
+    # end function readall
 
-    def __f6_(fn, k):
-        process(srcirdir, dstirdir, fn, DUMP_IR, DUMP_AST)
-    # end function <anonymous> (__f6_) (line 102)
+    def docompare(base1, base2):
+        def __f7_(path, fn, typ):
+            if __x_cb(__x_ne(typ, 0)):
+                return
+            # end if
+            distpath = joinPath(dstbase1, path, fn + (u".py"))
+            dstpath = joinPath(dstbase2, path, fn + (u".py"))
+            dist = readall(distpath)
+            dst = readall(dstpath)
+            f = __x_eq(dist, dst)
+            print(fn + (u" ") + ((u"verified") if __x_cb(f) else (u"differs")))
+            __u_v.val = __x_cb(__u_v.val) and f
+        # end function <anonymous> (__f7_)
 
-    def __f7_(fn, k):
-        copypy(srcirdir, dstirdir, fn)
-    # end function <anonymous> (__f7_) (line 106)
+        __u_v = __x_var()
+        dstbase1 = joinPath(DSTPATH, base1)
+        dstbase2 = joinPath(DSTPATH, base2)
+        print((u"compare ") + dstbase1 + (u" == ") + dstbase2)
+        __u_v.val = True
+        walk(__f7_)
+        return __u_v.val
+    # end function docompare
 
-    def __f8_(fn, k):
-        process(srcirdir, dstirdir, fn, DUMP_IR, DUMP_AST)
-    # end function <anonymous> (__f8_) (line 110)
+    def walk(cb):
+        doWalk((u"."), SRC_TREE, cb)
+    # end function walk
 
-    def __f9_(fn, k):
-        copypy(srcirdir, dstirdir, fn)
-    # end function <anonymous> (__f9_) (line 114)
+    def doWalk(p, d, cb):
+        def __fA_(k, _):
+            v = d[k]
+            if __x_cb(__x_iof(v, dict)):
+                dd = joinPath(p, k)
+                cb(dd, None, None)
+                doWalk(dd, v, cb)
+                return
+            # end if
+            cb(p, k, v)
+        # end function <anonymous> (__fA_)
 
-    def __fA_(fn, k):
-        process(srcirdir, dstirdir, fn, DUMP_IR, DUMP_AST)
-    # end function <anonymous> (__fA_) (line 118)
+        __x_at_forEach(d, __fA_)
+    # end function doWalk
 
-    def __fB_(fn, k):
-        copypy(srcirdir, dstirdir, fn)
-    # end function <anonymous> (__fB_) (line 122)
+    def __fB_(p, _):
+        try:
+            mkdir(p)
+        except __x_errT as errsc:
+            print((u"Cannot create the directory %s for new compilers. If the directory already exists, please delete it \
+manually at first.") % p)
+            exit(1)
+        # end try
+    # end function <anonymous> (__fB_)
 
-    def __fC_(fn, k):
-        distpath = join(dstirdir2, fn + (u".py"))
-        dstpath = join(dstirdir3, fn + (u".py"))
-        dist = readall(distpath)
-        dst = readall(dstpath)
-        f = __x_eq(dist, dst)
-        __u_v.val = __x_cb(__u_v.val) and f
-        print(fn + (u" ") + ((u"verified") if __x_cb(f) else (u"differs")))
-    # end function <anonymous> (__fC_) (line 126)
+    def __fC_(name, _):
+        t = SRC_TREE[name]
+        name = name + ((u".py") if __x_cb(__x_cb(__x_eq(t, 0)) or __x_eq(t, 1)) else (u""))
+        clean_sh.append((u"rm -rf \"") + BUILDPATH + (u"/") + name + (u"\""))
+        clean_sh.append((u"mv \"") + finalbase + (u"/") + name + (u"\" \"") + BUILDPATH + (u"/") + name + (u"\""))
+    # end function <anonymous> (__fC_)
 
     # class definitions:
-    __u_v = __x_var()
 
     SRCPATH = (u"..")
+    BUILDPATH = (u".")
+    DSTPATH = (u"./n")
     DUMP_AST = False
     DUMP_IR = False
     __r0 = __x_imp((u"os"))
     mkdir = __r0.mkdir
     __r1 = __x_imp((u"os.path"))
-    join = __r1.join
+    joinPath = __r1.join
     dirname = __r1.dirname
     basename = __r1.basename
     isdir = __r1.isdir
@@ -157,100 +171,48 @@ True})}))
     json_stringify = __r5.dumps
     __r6 = __x_imp((u"shutil"))
     copyfile = __r6.copyfile
-    __r7 = __x_imp((u"parser.esprima"))
-    parse = __r7.parse
-    toDict = __r7.toDict
-    __r8 = __x_imp((u"ir.ast2ir"))
-    convertASTIR = __r8.convertASTIR
-    __r9 = __x_imp((u"ir.utils"))
-    XMLDumper = __r9.XMLDumper
-    __rA = __x_imp((u"ir.pygen"))
-    PyGenerator = __rA.PyGenerator
-    __rB = __x_imp((u"ir.StringMap"))
-    StringMap = __rB.StringMap
+    copytree = __r6.copytree
+    subprocess = __x_imp((u"subprocess"))
+    SRC_SUFFIX = (u".as")
+    SRC_TREE = ({(u"parser"): 2, (u"tools"): ({(u"cas"): 0, (u"esstring"): 1, (u"range"): 1, (u"options"): 
+1, (u"__init__"): 1}), (u"ir"): ({(u"ast2ir"): 0, (u"element"): 0, (u"pygen"): 0, (u"symboltree"): 0, 
+(u"attribute"): 0, (u"variable"): 0, (u"StringMap"): 0, (u"utils"): 0, (u"compat"): 1, (u"syntax"): 1, 
+(u"__init__"): 1}), (u"compile"): 0, (u"bootstrap"): 0})
+    __x_at_forEach([DSTPATH, joinPath(DSTPATH, (u"cc1")), joinPath(DSTPATH, (u"cc2")), joinPath(DSTPATH, 
+(u"cc3"))], __fB_)
     time_st = time()
-    dstscriptdir = join((u"."), (u"scripts-n"))
-    try:
-        mkdir(dstscriptdir)
-    except __x_errT as errsc:
-        print((u"Cannot create the directory for compiler scripts (scripts-n). If the directory already exists, pleas\
-e delete it manually at first."))
-        exit()
-    # end try (line 173)
-    src_list = [(u"ast2ir"), (u"element"), (u"pygen"), (u"symboltree"), (u"identifier"), (u"StringMap"), 
-(u"utils")]
-    py_list = [(u"compat"), (u"syntax"), (u"__init__")]
     print((u"Stage 1"))
-    srcirdir = join(SRCPATH, (u"ir"))
-    dstirdir = join((u"."), (u"ir1"))
-    try:
-        mkdir(dstirdir)
-    except __x_errT as err1:
-        print((u"Cannot create the directory for stage 1 ir. If the directory already exists, please delete it manual\
-ly at first."))
-        exit()
-    # end try (line 186)
-    __x_at_forEach(src_list, __f6_)
-    __x_at_forEach(py_list, __f7_)
+    process((u".."), (u"cc1"))
     print((u"Stage 2"))
-    __rC = __x_imp((u"ir1.ast2ir"))
-    convertASTIR = __rC.convertASTIR
-    __rD = __x_imp((u"ir1.utils"))
-    XMLDumper = __rD.XMLDumper
-    __rE = __x_imp((u"ir1.pygen"))
-    PyGenerator = __rE.PyGenerator
-    __rF = __x_imp((u"ir1.StringMap"))
-    StringMap = __rF.StringMap
-    dstirdir = join((u"."), (u"ir2"))
-    dstirdir2 = dstirdir
-    try:
-        mkdir(dstirdir)
-    except __x_errT as err2:
-        print((u"Cannot create the directory for stage 2 ir. If the directory already exists, please delete it manual\
-ly at first."))
-        exit()
-    # end try (line 206)
-    __x_at_forEach(src_list, __f8_)
-    __x_at_forEach(py_list, __f9_)
+    process((u"cc1"), (u"cc2"))
     print((u"Stage 3"))
-    __rG = __x_imp((u"ir2.ast2ir"))
-    convertASTIR = __rG.convertASTIR
-    __rH = __x_imp((u"ir2.utils"))
-    XMLDumper = __rH.XMLDumper
-    __rI = __x_imp((u"ir2.pygen"))
-    PyGenerator = __rI.PyGenerator
-    __rJ = __x_imp((u"ir2.StringMap"))
-    StringMap = __rJ.StringMap
-    dstirdir = join((u"."), (u"ir3"))
-    dstirdir3 = dstirdir
-    try:
-        mkdir(dstirdir)
-    except __x_errT as err3:
-        print((u"Cannot create the directory for stage 3 ir. If the directory already exists, please delete it manual\
-ly at first."))
-        exit()
-    # end try (line 226)
-    __x_at_forEach(src_list, __fA_)
-    __x_at_forEach(py_list, __fB_)
+    process((u"cc2"), (u"cc3"))
+    print((u"verifying 1 and 2 (for reference only)..."))
+    docompare((u"cc1"), (u"cc2"))
     print((u"verifying..."))
-    __u_v.val = True
-    __x_at_forEach(src_list, __fC_)
-    print((u"all correct") if __x_cb(__u_v.val) else (u"something goes wrong"))
-    process(SRCPATH, dstscriptdir, (u"compile"), DUMP_IR, DUMP_AST)
-    process(SRCPATH, dstscriptdir, (u"bootstrap"), DUMP_IR, DUMP_AST)
-    clean_sh = (u"rm -rf parser/__pycache__\nrm -rf ir\nrm -rf ir1\n\
-rm -rf ir2\nrm ir3/*.xml\nrm ir3/*.json\nmv ir3 ir\n\
-mv scripts-n/compile.py ./compile.py\nmv scripts-n/bootstrap.py ./bootstrap.py\n\
-rm -rf scripts-n\nrm $0")
-    clean_sh_file = open(join((u"."), (u"cleanandreplace.sh")), (u"wb"))
+    v = docompare((u"cc2"), (u"cc3"))
+    if __x_cb(__x_not(v)):
+        print((u"something goes wrong"))
+        exit(1)
+    else:
+        print((u"all correct"))
+    # end if
+    finalbase = joinPath(DSTPATH, (u"cc3"))
+    clean_sh = []
+    clean_sh.append((u"find \"") + finalbase + (u"\" -name \"*.json\" -type f -delete"))
+    clean_sh.append((u"find \"") + finalbase + (u"\" -name \"*.xml\" -type f -delete"))
+    __x_at_forEach(SRC_TREE, __fC_)
+    clean_sh.append((u"rm -rf \"") + DSTPATH + (u"\""))
+    clean_sh.append((u"rm $0"))
+    clean_sh_file = open(joinPath((u"."), (u"cleanandreplace.sh")), (u"wb"))
     try:
-        clean_sh_file.write(clean_sh.encode((u"utf-8")))
+        clean_sh_file.write(__x_at_join(clean_sh, (u"\n")).encode((u"utf-8")))
     finally:
         clean_sh_file.close()
-    # end try (line 246)
+    # end try
     print((u"Done. If everything is OK, run cleanandreplace.sh to delete the older version."))
     time_sp = time()
-    print((u"Time cost: %f s") % (time_sp - time_st))
+    print((u"Total time consumption: %f s") % (time_sp - time_st))
 # program end
 
 

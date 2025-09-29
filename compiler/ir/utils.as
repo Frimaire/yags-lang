@@ -25,63 +25,6 @@ public class InternalError extends Exception {
 }
 
 
-
-/**
- * Error caused by the input
- *
- * 编译错误则是由输入的问题引起的错误.
- */
-public class CompileError extends Exception {
-
-    public var range:Range;
-    public var info:String;
-
-    public function CompileError(format:String, range:Range = null, ...rest) {
-        var info = printf(format, rest);
-        super(info);
-        this.range = range;
-        this.info = info;
-    }
-
-    public function toString():String {
-        if(this.range === null) {
-            return 'Line <unknown>: ' + this.info;
-        }
-        return printf('Line %d: %s', [this.range.startLine, this.info]);
-    }
-
-    public function __str__():String {
-        return this.toString();
-    }
-}
-
-
-
-/**
- * Error classes for conflict
- *
- * 冲突错误是一种编译错误, 用来对应于存在两个位置的错误.
- * 比如变量重定义, 企图赋值常量.
- */
-public class ConflictError extends CompileError {
-    public var rangeOrigin:Range;
-
-    public function ConflictError(format:String, rangeOccur:Range = null, rangeOrigin:Range = null, ...rest) {
-        super("%s", rangeOccur, printf(format, rest));
-        this.rangeOrigin = rangeOrigin;
-    }
-
-    override public function toString():String {
-        var s = super.toString();
-        if(this.rangeOrigin !== null) {
-            s += printf(' (originally defined in line %d)', [this.rangeOrigin.startLine]);
-        }
-        return s;
-    }
-}
-
-
-
 /**
  * class for structure check
  */
@@ -165,50 +108,6 @@ public class ElementPattern {
         this.optional = optional;
     }
 }
-
-
-
-/**
- * the position of the code
- */
-public class Range {
-
-    // the position of the first char
-    public var start;
-    // the position after the last char
-    public var end;
-    // the first line (start from 1)
-    public var startLine;
-    // the column of the first char in the first line (start from 0)
-    public var startColumn;
-    // the last line (start from 1)
-    public var endLine;
-    // the column of the last char in the last line (start from 0)
-    public var endColumn;
-
-    public function Range(start, end, startLine, startColumn, endLine, endColumn) {
-        this.start = start;
-        this.end = end;
-        this.startLine = startLine;
-        this.startColumn = startColumn;
-        this.endLine = endLine;
-        this.endColumn = endColumn;
-    }
-
-    public static function fromAST(o) {
-        var locs = o.loc;
-        var rg = o.range;
-        return new Range(
-            rg[0],
-            rg[1],
-            locs.start.line,
-            locs.start.column,
-            locs.end.line,
-            locs.end.column
-        );
-    }
-}
-
 
 
 /**

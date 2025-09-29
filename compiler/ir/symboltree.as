@@ -206,13 +206,18 @@ class TreePosition {
 // appendChild
 
 public class SymbolTree {
+    public var getNode, setNode;
 
     /**
      * @constructor
      * @alias module:symbol-tree
      * @param {string} [description='SymbolTree data'] Description used for the Symbol
      */
-    public function SymbolTree() {
+    public function SymbolTree(getNode, setNode) {
+        // this.symbol = Symbol(description || 'SymbolTree data');
+        // There is no Symbol in yags, so we use accessors for it.
+        this.getNode = getNode;
+        this.setNode = setNode;
     }
 
     /**
@@ -238,14 +243,14 @@ public class SymbolTree {
             return null;
         }
 
-        var node = object._symbolTreeNode;
+        var node = this.getNode(object);
 
         if (node !== null) {
             return node;
         }
 
         node = new SymbolTreeNode();
-        object._symbolTreeNode = node;
+        this.setNode(object, node);
         return node;
     }
 

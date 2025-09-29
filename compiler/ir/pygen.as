@@ -1,5 +1,5 @@
 var {ArrayList, StrTool} = import('.compat');
-var {CompileError, ElementPattern, Range, ConflictError, InternalError, XMLDumper} = import('.utils');
+var {ElementPattern, InternalError, XMLDumper} = import('.utils');
 
 /**
 * line number anchor

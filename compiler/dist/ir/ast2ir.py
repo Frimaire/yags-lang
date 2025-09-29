@@ -11,25 +11,18 @@ def __():
 
     # function definitions:
 
-    def convertASTIR(ast, options):
+    def convertASTIR(ast):
         assrt(ast, Syntax.Program)
-        ra = Range.fromAST(ast)
+        ra = rangeFromAST(ast)
         ir = GlobalElement(ra)
-        if __x_cb(__x_eq(options, None)):
-            options = StringMap()
-        # end if (line 18)
-        __r0 = ir
-        __r0.enableImplicitBooleanConversion = options.get((u"enableImplicitBooleanConversion"), False)
-        __r1 = ir
-        __r1.enableTupleSubscription = options.get((u"enableTupleSubscription"), False)
         convTop(ir, ast)
         return ir
-    # end function convertASTIR (line 14)
+    # end function convertASTIR
 
     def convLiteral(p, o):
         v = o.value
         r = o.raw
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         if __x_cb(__x_eq(v, None)):
             el = NullLiteralElement(ra)
         elif __x_cb(__x_eq(__x_typ(v), (u"boolean"))):
@@ -40,76 +33,83 @@ def __():
             el = NumberLiteralElement(v, r, ra)
         else:
             raise InternalError((u"unknown literal type"), ra, v)
-        # end if (line 33)
+        # end if
         p.append(el)
-    # end function convLiteral (line 29)
+    # end function convLiteral
 
     def convImag(p, o):
         r = o.raw
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         el = ComplexLiteralElement(r, ra)
         p.append(el)
-    # end function convImag (line 47)
+    # end function convImag
 
     def assrt(o, type):
         if __x_cb(__x_eq(o, None)):
             raise InternalError((u"expected ") + type + (u" but null is met"))
-        # end if (line 55)
+        # end if
         if __x_cb(__x_ne(o.type, type)):
             raise InternalError((u"expected ") + type + (u" but ") + o.type + (u" is met"))
-        # end if (line 58)
-    # end function assrt (line 54)
+        # end if
+    # end function assrt
 
     def assrt2(o, type):
         def __f6_(s, k, a):
             if __x_cb(__x_eq(o.type, s)):
                 __u_m.val = True
-            # end if (line 65)
-        # end function <anonymous> (__f6_) (line 64)
+            # end if
+        # end function <anonymous> (__f6_)
 
         __u_m = __x_var()
         if __x_cb(__x_eq(o, None)):
             raise InternalError((u"expected ") + type + (u" but null is met"))
-        # end if (line 71)
+        # end if
         __u_m.val = False
         ArrayList(type).forEach(__f6_)
         if __x_cb(__x_not(__u_m.val)):
             raise InternalError((u"expected ") + ArrayList(type).get(0) + (u"-like but ") + o.type + (u" is met"))
-        # end if (line 76)
-    # end function assrt2 (line 63)
+        # end if
+    # end function assrt2
 
     def convThis(p, o):
         assrt(o, Syntax.ThisExpression)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         p.append(ThisElement(ra))
-    # end function convThis (line 81)
+    # end function convThis
 
     def ident(o):
         assrt(o, Syntax.Identifier)
         return o.name
-    # end function ident (line 87)
+    # end function ident
+
+    def createTag(o, TagClass, *argv):
+        __r0 = TagClass
+        __r1 = [ident(o), rangeFromAST(o)]
+        __r1.extend(argv)
+        return __r0(*__r1)
+    # end function createTag
 
     def convIdentAsStr(p, o):
         assrt(o, Syntax.Identifier)
         n = ident(o)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         se = StringLiteralElement(n, (u"\"") + n + (u"\""), ra)
         p.append(se)
-    # end function convIdentAsStr (line 92)
+    # end function convIdentAsStr
 
     def convAttr(o):
-        return Attribute(ident(o), Range.fromAST(o))
-    # end function convAttr (line 100)
+        return Attribute(ident(o), rangeFromAST(o))
+    # end function convAttr
 
     def convVar(p, o, decl = (False)):
         assrt(o, Syntax.Identifier)
-        ra = Range.fromAST(o)
-        p.append(VarElement(ident(o), decl, ra))
-    # end function convVar (line 104)
+        ra = rangeFromAST(o)
+        p.append(VarElement(VarReference(ident(o), ra), decl))
+    # end function convVar
 
     def convMember(p, o):
         assrt(o, Syntax.MemberExpression)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         oo = o.object
         po = o.property
         cm = o.computed
@@ -117,44 +117,44 @@ def __():
             ee = ItemElement(ra)
         else:
             ee = AttributeElement(convAttr(po), ra)
-        # end if (line 116)
+        # end if
         p.append(ee)
         convExpr(ee, oo)
         if __x_cb(cm):
             convExprAllowTuple(ee, po)
-        # end if (line 123)
-    # end function convMember (line 110)
+        # end if
+    # end function convMember
 
     def convSuper(p, o):
         assrt(o, Syntax.Super)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         p.append(SuperElement(ra))
-    # end function convSuper (line 128)
+    # end function convSuper
 
     def convArgs(tus, pra, args):
-        def __fF_(ie, k, a):
+        def __fG_(ie, k, a):
             if __x_cb(__x_eq(ie, None)):
-                raise CompileError((u"Empty slot is not allowed"), pra)
-            # end if (line 136)
-            ra = Range.fromAST(ie)
+                CAS.error(pra, (u"Empty slot is not allowed"))
+            # end if
+            ra = rangeFromAST(ie)
             if __x_cb(__x_eq(ie.type, Syntax.SpreadElement)):
                 iee = SpreadElement(ra)
                 tus.append(iee)
                 convExpr(iee, ie.argument)
             else:
                 convExpr(tus, ie)
-            # end if (line 140)
-        # end function <anonymous> (__fF_) (line 135)
+            # end if
+        # end function <anonymous> (__fG_)
 
-        ArrayList(args).forEach(__fF_)
-    # end function convArgs (line 134)
+        ArrayList(args).forEach(__fG_)
+    # end function convArgs
 
     def convDotAtCall(p, o):
         assrt2(o, [Syntax.CallExpression, Syntax.NewExpression])
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         if __x_cb(__x_eq(o.type, Syntax.NewExpression)):
-            raise CompileError((u"at-function can only be callee"), ra)
-        # end if (line 155)
+            CAS.error(ra, (u"at-function can only be callee"))
+        # end if
         ce = o.callee
         assrt(ce, Syntax.DotAtExpression)
         me = ce.method
@@ -166,18 +166,18 @@ def __():
         arge = ArgumentElement(None)
         da.append(arge)
         convArgs(arge, ra, argv)
-    # end function convDotAtCall (line 152)
+    # end function convDotAtCall
 
     def convImport(p, o):
         assrt(o, Syntax.Import)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         cs = ImportElement(ra)
         p.append(cs)
-    # end function convImport (line 171)
+    # end function convImport
 
     def convCall(p, o):
         assrt2(o, [Syntax.CallExpression, Syntax.NewExpression])
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         argv = o.arguments
         ce = o.callee
         if __x_cb(__x_eq(ce.type, Syntax.DotAtExpression)):
@@ -189,106 +189,106 @@ def __():
             arge = ArgumentElement(None)
             cs.append(arge)
             convArgs(arge, ra, argv)
-        # end if (line 183)
-    # end function convCall (line 178)
+        # end if
+    # end function convCall
 
     def convArray(p, o):
         assrt(o, Syntax.ArrayExpression)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         ce = o.elements
         cs = ArrayElement(ra)
         p.append(cs)
         convArgs(cs, ra, ce)
-    # end function convArray (line 195)
+    # end function convArray
 
     def convObject(p, o):
-        def __fL_(ie, k, a):
+        def __fM_(ie, k, a):
             ke = ie.key
             ve = ie.value
             ki = ie.kind
-            rra = Range.fromAST(ie)
+            rra = rangeFromAST(ie)
             if __x_cb(__x_eq(ve, None)):
                 raise InternalError((u"null value dict init"), ie)
-            # end if (line 210)
+            # end if
             if __x_cb(__x_ne(ki, (u"init"))):
-                raise CompileError((u"accessor or method in object expression is not allowed"), rra)
-            # end if (line 213)
+                CAS.error(rra, (u"Accessor or method in object expression is not allowed."))
+            # end if
             kve = KeyValueElement(rra)
             cs.append(kve)
             if __x_cb(__x_eq(ke.type, Syntax.Identifier)):
                 convIdentAsStr(kve, ke)
             else:
                 convExpr(kve, ke)
-            # end if (line 218)
+            # end if
             convExpr(kve, ve)
-        # end function <anonymous> (__fL_) (line 205)
+        # end function <anonymous> (__fM_)
 
         assrt(o, Syntax.ObjectExpression)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         ce = o.properties
         cs = ObjectLiteralElement(ra)
         p.append(cs)
-        ArrayList(ce).forEach(__fL_)
-    # end function convObject (line 204)
+        ArrayList(ce).forEach(__fM_)
+    # end function convObject
 
     def convUnary(p, o):
         assrt(o, Syntax.UnaryExpression)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         op = o.operator
         ar = o.argument
         ee = UniaryOperatorElement(op, ra)
         p.append(ee)
         convExpr(ee, ar)
-    # end function convUnary (line 234)
+    # end function convUnary
 
     def convBinary(p, o):
         assrt(o, Syntax.BinaryExpression)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         op = o.operator
         ee = BinaryOperatorElement(op, ra)
         p.append(ee)
         convExpr(ee, o.left)
         convExpr(ee, o.right)
-    # end function convBinary (line 244)
+    # end function convBinary
 
     def convBinaryLogic(p, o):
         assrt(o, Syntax.LogicalExpression)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         op = o.operator
         ee = BinaryLogicalElement(op, ra)
         p.append(ee)
         convExpr(ee, o.left)
         convExpr(ee, o.right)
-    # end function convBinaryLogic (line 254)
+    # end function convBinaryLogic
 
     def convUpdate(p, o):
         assrt(o, Syntax.UpdateExpression)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         op = o.operator
         ar = o.argument
         ee = UpdateElement(op, o.prefix, ra)
         p.append(ee)
         convExpr(ee, ar)
-    # end function convUpdate (line 264)
+    # end function convUpdate
 
     def convCond(p, o):
         assrt(o, Syntax.ConditionalExpression)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         ee = TernaryOperatorElement(ra)
         p.append(ee)
         convExpr(ee, o.test)
         convExpr(ee, o.consequent)
         convExpr(ee, o.alternate)
-    # end function convCond (line 274)
+    # end function convCond
 
     def makeError(msg):
-        def __fS_(p, o):
-            ra = Range.fromAST(o)
-            raise CompileError(msg, ra)
-        # end function <anonymous> (__fS_) (line 285)
+        def __fT_(p, o):
+            ra = rangeFromAST(o)
+            CAS.error(ra, msg)
+        # end function <anonymous> (__fT_)
 
-        return __fS_
-    # end function makeError (line 284)
+        return __fT_
+    # end function makeError
 
     def convExpr(p, o):
         emap = StringMap([[Syntax.Literal, convLiteral], [Syntax.ComplexLiteral, convImag], [Syntax.ThisExpression, 
@@ -306,26 +306,26 @@ makeError((u"templated string is not implemented yet"))]])
         res = emap.get(o.type, None)
         if __x_cb(__x_eq(res, None)):
             raise InternalError((u"unknown expression ") + o.type, o)
-        # end if (line 307)
+        # end if
         res(p, o)
-    # end function convExpr (line 293)
+    # end function convExpr
 
     def convExprAllowTuple(p, o):
-        if __x_cb(__x_cb(o.type != Syntax.SequenceExpression) or __x_not(p.theGlobal.enableTupleSubscription)):
+        if __x_cb(__x_cb(o.type != Syntax.SequenceExpression) or __x_not(options.enableTupleSubscription)):
             convExpr(p, o)
             return
-        # end if (line 314)
-        ra = Range.fromAST(o)
+        # end if
+        ra = rangeFromAST(o)
         ce = o.expressions
         cs = TupleElement(ra)
         p.append(cs)
         convArgs(cs, ra, ce)
-    # end function convExprAllowTuple (line 313)
+    # end function convExprAllowTuple
 
     def convExprStat(p, o):
         assrt(o, Syntax.ExpressionStatement)
         ie = o.expression
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         if __x_cb(__x_cb(__x_eq(ie.type, Syntax.UnaryExpression)) and __x_eq(ie.operator, (u"delete"))):
             convDelete(p, ie)
         elif __x_cb(__x_eq(ie.type, Syntax.AssignmentExpression)):
@@ -334,22 +334,22 @@ makeError((u"templated string is not implemented yet"))]])
             ee = ExpressionStatementElement(ra)
             p.append(ee)
             convExpr(ee, ie)
-        # end if (line 329)
-    # end function convExprStat (line 325)
+        # end if
+    # end function convExprStat
 
     def convDelete(p, o):
         assrt(o, Syntax.UnaryExpression)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         ee = DeleteElement(ra)
         ar = o.argument
         p.append(ee)
         convExpr(ee, ar)
-    # end function convDelete (line 340)
+    # end function convDelete
 
     def convAssign(p, ra, l, r, op):
         if __x_cb(__x_eq(l.type, Syntax.ArrayPattern)):
-            raise CompileError((u"destructing to array pattern is not supported yet"), ra)
-        # end if (line 350)
+            CAS.error(ra, (u"Destructing to array pattern is not supported yet."))
+        # end if
         if __x_cb(__x_ne(l.type, Syntax.ObjectPattern)):
             ee = CompoundAssignElement(op, ra) if __x_cb(__x_ne(op, (u"="))) else AssignElement(ra)
             p.append(ee)
@@ -357,74 +357,74 @@ makeError((u"templated string is not implemented yet"))]])
         else:
             if __x_cb(__x_ne(op, (u"="))):
                 raise InternalError((u"compound destructuring assignment"))
-            # end if (line 358)
+            # end if
             ee = AssignDestructElement(ra)
             p.append(ee)
             convPattern(ee, l, False)
-        # end if (line 353)
+        # end if
         convExpr(ee, r)
-    # end function convAssign (line 349)
+    # end function convAssign
 
     def convPattern(p, o, decl):
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         if __x_cb(__x_eq(o.type, Syntax.ArrayPattern)):
-            raise CompileError((u"destructuring to array pattern is not supported yet"), ra)
+            CAS.error(ra, (u"Destructuring to array pattern is not supported yet."))
         elif __x_cb(__x_eq(o.type, Syntax.ObjectPattern)):
             convObjPattern(p, o, decl)
         else:
             raise InternalError((u"Unknown pattern type ") + o.type)
-        # end if (line 370)
-    # end function convPattern (line 368)
+        # end if
+    # end function convPattern
 
     def convObjPattern(p, o, decl):
-        def __f14_(ie, k, a):
+        def __f15_(ie, k, a):
             __u_has.val = True
             ko = ie.key
             vo = ie.value
             ki = ie.kind
-            rra = Range.fromAST(ie)
+            rra = rangeFromAST(ie)
             if __x_cb(__x_eq(vo, None)):
                 raise InternalError((u"null value object pattern"), ie)
-            # end if (line 386)
+            # end if
             if __x_cb(__x_ne(ki, (u"init"))):
                 raise InternalError((u"method in object pattern"), ie)
-            # end if (line 389)
+            # end if
             kve = DestructPropertyElement(decl, convAttr(ko), rra)
             ee.append(kve)
             if __x_cb(__x_eq(vo.type, Syntax.AssignmentPattern)):
-                raise CompileError((u"default value is not allowed in destructuring object"), rra)
+                CAS.error(rra, (u"Default value is not allowed in destructuring object."))
             elif __x_cb(__x_cb(__x_eq(vo.type, Syntax.ArrayPattern)) or __x_eq(vo.type, Syntax.ObjectPattern)):
                 convPattern(kve, vo, decl)
             elif __x_cb(decl):
                 convVar(kve, vo, True)
             else:
                 convExpr(kve, vo)
-            # end if (line 394)
-        # end function <anonymous> (__f14_) (line 380)
+            # end if
+        # end function <anonymous> (__f15_)
 
         __u_has = __x_var()
         assrt(o, Syntax.ObjectPattern)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         ce = o.properties
         ee = DestructObjectElement(decl, ra)
         p.append(ee)
         __u_has.val = False
-        ArrayList(ce).forEach(__f14_)
+        ArrayList(ce).forEach(__f15_)
         if __x_cb(__x_not(__u_has.val)):
-            raise CompileError((u"empty destructuring target is not allowed"), ra)
-        # end if (line 413)
-    # end function convObjPattern (line 379)
+            CAS.error(ra, (u"Empty destructuring target is not allowed."))
+        # end if
+    # end function convObjPattern
 
     def convVarDecl(p, o):
-        def __f16_(oi, k, a):
+        def __f17_(oi, k, a):
             assrt(oi, Syntax.VariableDeclarator)
-            rra = Range.fromAST(oi)
+            rra = rangeFromAST(oi)
             l = oi.id
             r = oi.init
             if __x_cb(__x_eq(r, None)):
-                ee = VarDeclaratorElement(rra)
+                ee = ExpressionStatementElement(rra)
                 p.append(ee)
-                ee.append(VarElement(ident(l), True, rra))
+                ee.append(VarElement(VarReference(ident(l), rra), True))
             elif __x_cb(__x_eq(l.type, Syntax.Identifier)):
                 ee = AssignElement(rra)
                 p.append(ee)
@@ -435,61 +435,61 @@ makeError((u"templated string is not implemented yet"))]])
                 p.append(ee)
                 convPattern(ee, l, True)
                 convExpr(ee, r)
-            # end if (line 424)
-        # end function <anonymous> (__f16_) (line 419)
+            # end if
+        # end function <anonymous> (__f17_)
 
         assrt(o, Syntax.VariableDeclaration)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         ki = o.kind
         if __x_cb(__x_ne(ki, (u"var"))):
-            raise CompileError(ki + (u" declaration is not allowed"), ra)
-        # end if (line 444)
-        ArrayList(o.declarations).forEach(__f16_)
-    # end function convVarDecl (line 418)
+            CAS.error(ra, (u"%s declaration is not allowed"), ki)
+        # end if
+        ArrayList(o.declarations).forEach(__f17_)
+    # end function convVarDecl
 
     def convChildren(p, el):
-        def __f18_(ie, k, a):
+        def __f19_(ie, k, a):
             convStat(p, ie)
-        # end function <anonymous> (__f18_) (line 451)
+        # end function <anonymous> (__f19_)
 
-        ArrayList(el).forEach(__f18_)
-    # end function convChildren (line 450)
+        ArrayList(el).forEach(__f19_)
+    # end function convChildren
 
     def convStatOrBlock(p, o, BodyClass):
         if __x_cb(__x_eq(o, None)):
             assrt(o, Syntax.BlockStatement)
-        # end if (line 459)
-        ra = Range.fromAST(o)
+        # end if
+        ra = rangeFromAST(o)
         be = BodyClass(ra)
         p.append(be)
         if __x_cb(__x_eq(o.type, Syntax.BlockStatement)):
             convChildren(be, o.body)
         else:
             convStat(be, o)
-        # end if (line 465)
-    # end function convStatOrBlock (line 458)
+        # end if
+    # end function convStatOrBlock
 
     def convCondExpr(p, o):
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         ee = ConditionElement(ra)
         p.append(ee)
         convExpr(ee, o)
-    # end function convCondExpr (line 472)
+    # end function convCondExpr
 
     def convWhile(p, o):
         assrt(o, Syntax.WhileStatement)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         we = WhileElement(ra)
         p.append(we)
         convCondExpr(we, o.test)
         convStatOrBlock(we, o.body, BodyElement)
-    # end function convWhile (line 479)
+    # end function convWhile
 
     def convElse(p, o):
         if __x_cb(__x_eq(o, None)):
             return
-        # end if (line 489)
-        ra = Range.fromAST(o)
+        # end if
+        ra = rangeFromAST(o)
         if __x_cb(__x_eq(o.type, Syntax.IfStatement)):
             elife = ElifElement(ra)
             p.append(elife)
@@ -498,12 +498,12 @@ makeError((u"templated string is not implemented yet"))]])
             convElse(p, o.alternate)
         else:
             convStatOrBlock(p, o, ElseElement)
-        # end if (line 493)
-    # end function convElse (line 488)
+        # end if
+    # end function convElse
 
     def convIf(p, o):
         assrt(o, Syntax.IfStatement)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         ee = IfBlockElement(ra)
         p.append(ee)
         ie = IfElement(ra)
@@ -511,86 +511,86 @@ makeError((u"templated string is not implemented yet"))]])
         convCondExpr(ie, o.test)
         convStatOrBlock(ie, o.consequent, BodyElement)
         convElse(ee, o.alternate)
-    # end function convIf (line 504)
+    # end function convIf
 
     def convReturn(p, o):
         assrt(o, Syntax.ReturnStatement)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         re = ReturnElement(ra)
         p.append(re)
         a = o.argument
         if __x_cb(__x_ne(a, None)):
             convExpr(re, a)
-        # end if (line 522)
-    # end function convReturn (line 516)
+        # end if
+    # end function convReturn
 
     def convThrow(p, o):
         assrt(o, Syntax.ThrowStatement)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         throw_ = ThrowElement(ra)
         p.append(throw_)
         convExpr(throw_, o.argument)
-    # end function convThrow (line 527)
+    # end function convThrow
 
     def convBreak(p, o):
         assrt(o, Syntax.BreakStatement)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         if __x_cb(__x_ne(o.label, None)):
-            raise CompileError((u"labeled break is not implemented yet"), ra)
-        # end if (line 538)
+            CAS.error(ra, (u"labeled break is not implemented yet."))
+        # end if
         p.append(BreakElement(ra))
-    # end function convBreak (line 535)
+    # end function convBreak
 
     def convCont(p, o):
         assrt(o, Syntax.ContinueStatement)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         if __x_cb(__x_ne(o.label, None)):
-            raise CompileError((u"labeled continue is not implemented yet"), ra)
-        # end if (line 547)
+            CAS.error(ra, (u"labeled continue is not implemented yet."))
+        # end if
         p.append(ContinueElement(ra))
-    # end function convCont (line 544)
+    # end function convCont
 
     def convParam(p, o):
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         if __x_cb(__x_ne(o.type, Syntax.Identifier)):
-            raise CompileError((u"destructuring parameter is not supported yet"), ra)
-        # end if (line 555)
+            CAS.error(ra, (u"Destructuring parameter is not supported yet"))
+        # end if
         ee = ParameterElement(ident(o), ra)
         p.append(ee)
-    # end function convParam (line 553)
+    # end function convParam
 
     def convCatch(tcf, o):
         assrt(o, Syntax.CatchClause)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         een = __x_ne(o.param, None)
         catch_ = CatchElement(ra)
         tcf.append(catch_)
         if __x_cb(een):
             convParam(catch_, o.param)
-        # end if (line 568)
+        # end if
         convStatOrBlock(catch_, o.body, BodyElement)
-    # end function convCatch (line 562)
+    # end function convCatch
 
     def convTry(p, o):
         assrt(o, Syntax.TryStatement)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         tcf = TryBlockElement(ra)
         p.append(tcf)
         convStatOrBlock(tcf, o.block, TryElement)
         if __x_cb(__x_ne(o.handler, None)):
             convCatch(tcf, o.handler)
-        # end if (line 580)
+        # end if
         if __x_cb(__x_ne(o.finalizer, None)):
             convStatOrBlock(tcf, o.finalizer, FinallyElement)
-        # end if (line 583)
-    # end function convTry (line 574)
+        # end if
+    # end function convTry
 
     def convStat(p, o):
-        def __f1M_(*a):
+        def __f1N_(*a):
             pass
-        # end function <anonymous> (__f1M_) (line 589)
+        # end function <anonymous> (__f1N_)
 
-        emap = StringMap([[Syntax.EmptyStatement, __f1M_], [Syntax.ExpressionStatement, convExprStat], [Syntax\
+        emap = StringMap([[Syntax.EmptyStatement, __f1N_], [Syntax.ExpressionStatement, convExprStat], [Syntax\
 .VariableDeclaration, convVarDecl], [Syntax.WhileStatement, convWhile], [Syntax.IfStatement, convIf], 
 [Syntax.TryStatement, convTry], [Syntax.ThrowStatement, convThrow], [Syntax.ContinueStatement, convCont], 
 [Syntax.BreakStatement, convBreak], [Syntax.ReturnStatement, convReturn], [Syntax.FunctionDeclaration, 
@@ -598,49 +598,48 @@ makeError((u"nested functions cannot be declared"))]])
         res = emap.get(o.type, None)
         if __x_cb(__x_eq(res, None)):
             raise InternalError((u"unknown statement ") + o.type, o)
-        # end if (line 599)
+        # end if
         res(p, o)
-    # end function convStat (line 588)
+    # end function convStat
 
     def convFuncDecl(pfn, o, pub):
         assrt(o, Syntax.FunctionDeclaration)
         if __x_cb(o.expression):
             raise InternalError((u"Unexcepted function with single expression"), o)
-        # end if (line 607)
-        ra = Range.fromAST(o)
-        ria = Range.fromAST(o.id)
-        fn = FunctionDefinitionElement(ident(o.id), pub, ria, ra)
+        # end if
+        ra = rangeFromAST(o)
+        fn = FunctionDefinitionElement(createTag(o.id, FunctionTag), pub, ra)
         pfn.functionDefinitions.append(fn)
         convFuncInner(fn, o)
-    # end function convFuncDecl (line 605)
+    # end function convFuncDecl
 
     def convFuncExpr(p, o):
         assrt(o, Syntax.FunctionExpression)
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         name = o.id
-        fn = FunctionExpressionElement(None if __x_cb(__x_eq(name, None)) else ident(name), None if __x_cb(__x_eq(name, 
-None)) else Range.fromAST(name), ra)
-        p.theFunction.functionDefinitions.append(fn)
+        fnc = FunctionExpressionContainerElement(FunctionExpTag() if __x_cb(__x_eq(name, None)) else createTag(name, 
+FunctionExpTag), ra)
+        fn = fnc.functionBody
+        p.append(fnc)
         convFuncInner(fn, o)
-        p.append(VarElement.getFunctionExp(fn.tag))
-    # end function convFuncExpr (line 617)
+    # end function convFuncExpr
 
     def convFuncInnerDecl(fn, o):
         if __x_cb(__x_eq(o.type, Syntax.FunctionDeclaration)):
             convFuncDecl(fn, o, False)
         else:
             convStat(fn.body, o)
-        # end if (line 629)
-    # end function convFuncInnerDecl (line 628)
+        # end if
+    # end function convFuncInnerDecl
 
     def convFuncInner(fn, o):
-        def __f1R_(p, k, v):
-            rra = Range.fromAST(o)
+        def __f1S_(p, k, v):
+            rra = rangeFromAST(o)
             if __x_cb(__x_cb(__x_cb(__x_eq(p.type, Syntax.Identifier)) or __x_eq(p.type, Syntax.ArrayPattern)) or __x_eq(p\
 .type, Syntax.ObjectPattern)):
                 if __x_cb(opt):
-                    raise CompileError((u"optional parameter may be placed only after required parameter"), rra)
-                # end if (line 641)
+                    CAS.error(rra, (u"optional parameter may be placed only after required parameter"))
+                # end if
                 convParam(pe, p)
             elif __x_cb(__x_eq(p.type, Syntax.AssignmentPattern)):
                 ie = ParameterAssignElement(rra)
@@ -653,119 +652,124 @@ None)) else Range.fromAST(name), ra)
                 convParam(ie, p.argument)
             else:
                 raise InternalError((u"unknown parameter ") + p.type, p)
-            # end if (line 639)
-        # end function <anonymous> (__f1R_) (line 637)
+            # end if
+        # end function <anonymous> (__f1S_)
 
-        def __f1S_(m, k, a):
+        def __f1T_(m, k, a):
             convFuncInnerDecl(fn, m)
-        # end function <anonymous> (__f1S_) (line 659)
+        # end function <anonymous> (__f1T_)
 
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         if __x_cb(o.isAsync):
-            raise CompileError((u"async function is not supported yet"), ra)
-        # end if (line 664)
+            CAS.error(ra, (u"async function is not supported yet"))
+        # end if
         if __x_cb(o.generator):
-            raise CompileError((u"generator function is not supported yet"), ra)
-        # end if (line 667)
+            CAS.error(ra, (u"generator function is not supported yet"))
+        # end if
         pe = fn.parameters
         opt = False
-        ArrayList(o.params).forEach(__f1R_)
+        ArrayList(o.params).forEach(__f1S_)
         defs = fn.functionDefinitions
         body = fn.body
         expr = o.expression
         if __x_cb(expr):
-            rra = Range.fromAST(o.body)
+            rra = rangeFromAST(o.body)
             re = ReturnElement(rra)
             body.append(re)
             convExpr(re, o.body)
         else:
             assrt(o.body, Syntax.BlockStatement)
-            ArrayList(o.body.body).forEach(__f1S_)
-        # end if (line 676)
-    # end function convFuncInner (line 636)
+            ArrayList(o.body.body).forEach(__f1T_)
+        # end if
+    # end function convFuncInner
 
     def convClassDecl(g, oc, pub):
-        def __f1U_(oi, k, a):
-            def __f1V_(ov, k, a):
+        def __f1V_(oi, k, a):
+            def __f20_(ov, k, a):
                 assrt(ov, Syntax.VariableDeclarator)
-                rii = Range.fromAST(ov)
+                rii = rangeFromAST(ov)
                 ido = ov.id
                 ino = ov.init
                 ie = (StaticInitializerElement if __x_cb(s) else InstanceInitializerElement)(convAttr(ido), p, rii)
                 (ce.staticInit if __x_cb(s) else ce.instanceInit).body.append(ie)
                 if __x_cb(__x_ne(ino, None)):
                     convExpr(ie, ino)
-                # end if (line 696)
-            # end function <anonymous> (__f1V_) (line 689)
+                # end if
+            # end function <anonymous> (__f20_)
 
-            ra = Range.fromAST(oi)
-            ira = Range.fromAST(oi)
+            ra = rangeFromAST(oi)
+            ira = rangeFromAST(oi)
             if __x_cb(__x_eq(oi.accessModifier, (u"public"))):
                 p = True
             elif __x_cb(__x_eq(oi.accessModifier, (u"private"))):
                 p = False
             else:
                 raise InternalError((u"unknown access modifier"))
-            # end if (line 703)
+            # end if
             s = oi.isStatic
             od = oi.declaration
             if __x_cb(__x_cb(__x_eq(oi.type, Syntax.PropertyDeclaration)) and __x_eq(oi.kind, (u"var"))):
                 assrt(od, Syntax.VariableDeclaration)
-                ArrayList(od.declarations).forEach(__f1V_)
+                ArrayList(od.declarations).forEach(__f20_)
             elif __x_cb(__x_eq(oi.type, Syntax.MethodDeclaration)):
                 assrt(od, Syntax.FunctionDeclaration)
-                ria = Range.fromAST(od.id)
-                me = MethodElement(ident(od.id), oi.kind, s, p, ria, ra)
+                me = MethodElement(createTag(od.id, MethodTag, oi.kind, s, p), ra)
                 ce.functionDefinitions.append(me)
                 convFuncInner(me, od)
             else:
                 raise InternalError((u"unknown class member type"))
-            # end if (line 712)
-        # end function <anonymous> (__f1U_) (line 688)
+            # end if
+        # end function <anonymous> (__f1V_)
 
         assrt(oc, Syntax.ClassDeclaration)
-        ra = Range.fromAST(oc)
-        ria = Range.fromAST(oc.id)
+        ra = rangeFromAST(oc)
         su = oc.superClass
-        ce = ClassElement(ident(oc.id), __x_ne(su, None), pub, ria, ra)
+        ce = ClassElement(createTag(oc.id, ClassTag), __x_ne(su, None), pub, ra)
         g.classDefinitions.append(ce)
         cinit = ce.createClassInitElement()
         g.body.append(cinit)
         if __x_cb(__x_ne(su, None)):
             convExpr(cinit, su)
-        # end if (line 734)
+        # end if
         bo = oc.body
         assrt(bo, Syntax.ClassBody)
-        ArrayList(bo.body).forEach(__f1U_)
-    # end function convClassDecl (line 687)
+        ArrayList(bo.body).forEach(__f1V_)
+    # end function convClassDecl
 
     def convTopDecl(g, o, pub, next):
-        ra = Range.fromAST(o)
+        ra = rangeFromAST(o)
         if __x_cb(__x_eq(o.type, Syntax.FunctionDeclaration)):
             convFuncDecl(g, o, pub)
         elif __x_cb(__x_eq(o.type, Syntax.ClassDeclaration)):
             convClassDecl(g, o, pub)
         else:
             next(g, o)
-        # end if (line 744)
-    # end function convTopDecl (line 742)
+        # end if
+    # end function convTopDecl
 
     def convTop(g, o):
-        def __f22_(m, k, a):
-            def __f23_(g, o):
+        def __f23_(m, k, a):
+            def __f24_(g, o):
                 raise InternalError((u"Illegal public declaration ") + o.type)
-            # end function <anonymous> (__f23_) (line 755)
+            # end function <anonymous> (__f24_)
 
             if __x_cb(__x_eq(m.type, Syntax.PublicDeclaration)):
-                convTopDecl(g, m.declaration, True, __f23_)
+                convTopDecl(g, m.declaration, True, __f24_)
             else:
                 convTopDecl(g, m, False, convFuncInnerDecl)
-            # end if (line 759)
-        # end function <anonymous> (__f22_) (line 754)
+            # end if
+        # end function <anonymous> (__f23_)
 
         assrt(o, Syntax.Program)
-        ArrayList(o.body).forEach(__f22_)
-    # end function convTop (line 753)
+        ArrayList(o.body).forEach(__f23_)
+    # end function convTop
+
+    def rangeFromAST(o):
+        locs = o.loc
+        rg = o.range
+        return Range(Marker(rg[0], locs.start.line, locs.start.column), Marker(rg[1], locs.end.line, locs.end\
+.column))
+    # end function rangeFromAST
 
     # class definitions:
 
@@ -774,93 +778,103 @@ None)) else Range.fromAST(name), ra)
     __r1 = __x_imp((u".StringMap"))
     StringMap = __r1.StringMap
     __r2 = __x_imp((u".utils"))
-    Range = __r2.Range
     InternalError = __r2.InternalError
-    CompileError = __r2.CompileError
-    __r3 = __x_imp((u".identifier"))
-    Attribute = __r3.Attribute
-    __r4 = __x_imp((u".syntax"))
-    Syntax = __r4.Syntax
-    __r5 = __x_imp((u".element"))
-    ArgumentElement = __r5.ArgumentElement
-    ArrayElement = __r5.ArrayElement
-    AssignDestructElement = __r5.AssignDestructElement
-    AssignElement = __r5.AssignElement
-    AssignTempElement = __r5.AssignTempElement
-    AttributeElement = __r5.AttributeElement
-    BaseFunctionElement = __r5.BaseFunctionElement
-    BinaryOperatorElement = __r5.BinaryOperatorElement
-    BinaryLogicalElement = __r5.BinaryLogicalElement
-    BlockElement = __r5.BlockElement
-    BodyElement = __r5.BodyElement
-    BooleanLiteralElement = __r5.BooleanLiteralElement
-    BreakElement = __r5.BreakElement
-    CallElement = __r5.CallElement
-    CatchElement = __r5.CatchElement
-    ClassElement = __r5.ClassElement
-    ClassGroupElement = __r5.ClassGroupElement
-    ClassInitElement = __r5.ClassInitElement
-    ComplexLiteralElement = __r5.ComplexLiteralElement
-    CompoundAssignElement = __r5.CompoundAssignElement
-    ConditionElement = __r5.ConditionElement
-    ContinueElement = __r5.ContinueElement
-    DeleteElement = __r5.DeleteElement
-    DestructGroupElement = __r5.DestructGroupElement
-    DestructObjectElement = __r5.DestructObjectElement
-    DestructPropertyElement = __r5.DestructPropertyElement
-    DoWhileElement = __r5.DoWhileElement
-    Element = __r5.Element
-    ElifElement = __r5.ElifElement
-    ElseElement = __r5.ElseElement
-    ExpressionElement = __r5.ExpressionElement
-    ExpressionStatementElement = __r5.ExpressionStatementElement
-    FinallyElement = __r5.FinallyElement
-    FunctionDefinitionElement = __r5.FunctionDefinitionElement
-    FunctionElement = __r5.FunctionElement
-    FunctionExpressionElement = __r5.FunctionExpressionElement
-    FunctionGroupElement = __r5.FunctionGroupElement
-    FundamentalLiteralElement = __r5.FundamentalLiteralElement
-    GlobalElement = __r5.GlobalElement
-    IfBlockElement = __r5.IfBlockElement
-    IfElement = __r5.IfElement
-    ImportElement = __r5.ImportElement
-    InstanceGroupElement = __r5.InstanceGroupElement
-    InstanceInitializerElement = __r5.InstanceInitializerElement
-    ItemElement = __r5.ItemElement
-    KeyValueElement = __r5.KeyValueElement
-    LvalueElement = __r5.LvalueElement
-    MagicCallElement = __r5.MagicCallElement
-    MethodElement = __r5.MethodElement
-    MethodGroupElement = __r5.MethodGroupElement
-    MethodParameterGroupElement = __r5.MethodParameterGroupElement
-    NotOperatorElement = __r5.NotOperatorElement
-    NullLiteralElement = __r5.NullLiteralElement
-    NullishCheckElement = __r5.NullishCheckElement
-    NumberLiteralElement = __r5.NumberLiteralElement
-    ObjectLiteralElement = __r5.ObjectLiteralElement
-    ParameterAssignElement = __r5.ParameterAssignElement
-    ParameterElement = __r5.ParameterElement
-    ParameterGroupElement = __r5.ParameterGroupElement
-    RestParameterElement = __r5.RestParameterElement
-    ReturnElement = __r5.ReturnElement
-    SequenceElement = __r5.SequenceElement
-    SpreadElement = __r5.SpreadElement
-    StatementElement = __r5.StatementElement
-    StaticGroupElement = __r5.StaticGroupElement
-    StaticInitializerElement = __r5.StaticInitializerElement
-    StringLiteralElement = __r5.StringLiteralElement
-    SuperElement = __r5.SuperElement
-    TernaryOperatorElement = __r5.TernaryOperatorElement
-    ThisElement = __r5.ThisElement
-    ThrowElement = __r5.ThrowElement
-    TryBlockElement = __r5.TryBlockElement
-    TryElement = __r5.TryElement
-    TupleElement = __r5.TupleElement
-    UniaryOperatorElement = __r5.UniaryOperatorElement
-    UpdateElement = __r5.UpdateElement
-    VarDeclaratorElement = __r5.VarDeclaratorElement
-    VarElement = __r5.VarElement
-    WhileElement = __r5.WhileElement
+    __r3 = __x_imp((u"tools.range"))
+    Range = __r3.Range
+    Marker = __r3.Marker
+    __r4 = __x_imp((u"tools.options"))
+    options = __r4.options
+    CAS = __x_imp((u"tools.cas"))
+    __r5 = __x_imp((u".attribute"))
+    Attribute = __r5.Attribute
+    __r6 = __x_imp((u".variable"))
+    VarReference = __r6.VarReference
+    ClassTag = __r6.ClassTag
+    FunctionTag = __r6.FunctionTag
+    FunctionExpTag = __r6.FunctionExpTag
+    MethodTag = __r6.MethodTag
+    __r7 = __x_imp((u".syntax"))
+    Syntax = __r7.Syntax
+    __r8 = __x_imp((u".element"))
+    ArgumentElement = __r8.ArgumentElement
+    ArrayElement = __r8.ArrayElement
+    AssignDestructElement = __r8.AssignDestructElement
+    AssignElement = __r8.AssignElement
+    AssignTempElement = __r8.AssignTempElement
+    AttributeElement = __r8.AttributeElement
+    BaseFunctionElement = __r8.BaseFunctionElement
+    BinaryOperatorElement = __r8.BinaryOperatorElement
+    BinaryLogicalElement = __r8.BinaryLogicalElement
+    BlockElement = __r8.BlockElement
+    BodyElement = __r8.BodyElement
+    BooleanLiteralElement = __r8.BooleanLiteralElement
+    BreakElement = __r8.BreakElement
+    CallElement = __r8.CallElement
+    CatchElement = __r8.CatchElement
+    ClassElement = __r8.ClassElement
+    ClassGroupElement = __r8.ClassGroupElement
+    ClassInitElement = __r8.ClassInitElement
+    ComplexLiteralElement = __r8.ComplexLiteralElement
+    CompoundAssignElement = __r8.CompoundAssignElement
+    ConditionElement = __r8.ConditionElement
+    ContinueElement = __r8.ContinueElement
+    DeleteElement = __r8.DeleteElement
+    DestructGroupElement = __r8.DestructGroupElement
+    DestructObjectElement = __r8.DestructObjectElement
+    DestructPropertyElement = __r8.DestructPropertyElement
+    DoWhileElement = __r8.DoWhileElement
+    Element = __r8.Element
+    ElifElement = __r8.ElifElement
+    ElseElement = __r8.ElseElement
+    ExpressionElement = __r8.ExpressionElement
+    ExpressionStatementElement = __r8.ExpressionStatementElement
+    FinallyElement = __r8.FinallyElement
+    FunctionDefinitionElement = __r8.FunctionDefinitionElement
+    FunctionElement = __r8.FunctionElement
+    FunctionExpressionElement = __r8.FunctionExpressionElement
+    FunctionExpressionContainerElement = __r8.FunctionExpressionContainerElement
+    FunctionGroupElement = __r8.FunctionGroupElement
+    FundamentalLiteralElement = __r8.FundamentalLiteralElement
+    GlobalElement = __r8.GlobalElement
+    IfBlockElement = __r8.IfBlockElement
+    IfElement = __r8.IfElement
+    ImportElement = __r8.ImportElement
+    InstanceGroupElement = __r8.InstanceGroupElement
+    InstanceInitializerElement = __r8.InstanceInitializerElement
+    ItemElement = __r8.ItemElement
+    KeyValueElement = __r8.KeyValueElement
+    LvalueElement = __r8.LvalueElement
+    MagicCallElement = __r8.MagicCallElement
+    MethodElement = __r8.MethodElement
+    MethodGroupElement = __r8.MethodGroupElement
+    MethodParameterGroupElement = __r8.MethodParameterGroupElement
+    NotOperatorElement = __r8.NotOperatorElement
+    NullLiteralElement = __r8.NullLiteralElement
+    NullishCheckElement = __r8.NullishCheckElement
+    NumberLiteralElement = __r8.NumberLiteralElement
+    ObjectLiteralElement = __r8.ObjectLiteralElement
+    ParameterAssignElement = __r8.ParameterAssignElement
+    ParameterElement = __r8.ParameterElement
+    ParameterGroupElement = __r8.ParameterGroupElement
+    RestParameterElement = __r8.RestParameterElement
+    ReturnElement = __r8.ReturnElement
+    SequenceElement = __r8.SequenceElement
+    SpreadElement = __r8.SpreadElement
+    StatementElement = __r8.StatementElement
+    StaticGroupElement = __r8.StaticGroupElement
+    StaticInitializerElement = __r8.StaticInitializerElement
+    StringLiteralElement = __r8.StringLiteralElement
+    SuperElement = __r8.SuperElement
+    TernaryOperatorElement = __r8.TernaryOperatorElement
+    ThisElement = __r8.ThisElement
+    ThrowElement = __r8.ThrowElement
+    TryBlockElement = __r8.TryBlockElement
+    TryElement = __r8.TryElement
+    TupleElement = __r8.TupleElement
+    UniaryOperatorElement = __r8.UniaryOperatorElement
+    UpdateElement = __r8.UpdateElement
+    VarElement = __r8.VarElement
+    WhileElement = __r8.WhileElement
 # program end
 
 

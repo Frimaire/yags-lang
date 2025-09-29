@@ -1,19 +1,21 @@
 var {ArrayList} = import('.compat');
 var {StringMap} = import('.StringMap');
-var {Range, InternalError, CompileError} = import('.utils');
-var {Attribute} = import('.identifier');
+var {InternalError} = import('.utils');
+var {Range, Marker} = import('tools.range');
+var {options} = import('tools.options');
+var CAS = import('tools.cas');
+var {Attribute} = import('.attribute');
+var {
+    VarReference,
+    ClassTag, FunctionTag, FunctionExpTag, MethodTag
+} = import('.variable');
 var {Syntax} = import('.syntax');
-var {ArgumentElement, ArrayElement, AssignDestructElement, AssignElement, AssignTempElement, AttributeElement, BaseFunctionElement, BinaryOperatorElement, BinaryLogicalElement, BlockElement, BodyElement, BooleanLiteralElement, BreakElement, CallElement, CatchElement, ClassElement, ClassGroupElement, ClassInitElement, ComplexLiteralElement, CompoundAssignElement, ConditionElement, ContinueElement, DeleteElement, DestructGroupElement, DestructObjectElement, DestructPropertyElement, DoWhileElement, Element, ElifElement, ElseElement, ExpressionElement, ExpressionStatementElement, FinallyElement, FunctionDefinitionElement, FunctionElement, FunctionExpressionElement, FunctionGroupElement, FundamentalLiteralElement, GlobalElement, IfBlockElement, IfElement, ImportElement, InstanceGroupElement, InstanceInitializerElement, ItemElement, KeyValueElement, LvalueElement, MagicCallElement, MethodElement, MethodGroupElement, MethodParameterGroupElement, NotOperatorElement, NullLiteralElement, NullishCheckElement, NumberLiteralElement, ObjectLiteralElement, ParameterAssignElement, ParameterElement, ParameterGroupElement, RestParameterElement, ReturnElement, SequenceElement, SpreadElement, StatementElement, StaticGroupElement, StaticInitializerElement, StringLiteralElement, SuperElement, TernaryOperatorElement, ThisElement, ThrowElement, TryBlockElement, TryElement, TupleElement, UniaryOperatorElement, UpdateElement, VarDeclaratorElement, VarElement, WhileElement} = import('.element');
+var {ArgumentElement, ArrayElement, AssignDestructElement, AssignElement, AssignTempElement, AttributeElement, BaseFunctionElement, BinaryOperatorElement, BinaryLogicalElement, BlockElement, BodyElement, BooleanLiteralElement, BreakElement, CallElement, CatchElement, ClassElement, ClassGroupElement, ClassInitElement, ComplexLiteralElement, CompoundAssignElement, ConditionElement, ContinueElement, DeleteElement, DestructGroupElement, DestructObjectElement, DestructPropertyElement, DoWhileElement, Element, ElifElement, ElseElement, ExpressionElement, ExpressionStatementElement, FinallyElement, FunctionDefinitionElement, FunctionElement, FunctionExpressionElement, FunctionExpressionContainerElement, FunctionGroupElement, FundamentalLiteralElement, GlobalElement, IfBlockElement, IfElement, ImportElement, InstanceGroupElement, InstanceInitializerElement, ItemElement, KeyValueElement, LvalueElement, MagicCallElement, MethodElement, MethodGroupElement, MethodParameterGroupElement, NotOperatorElement, NullLiteralElement, NullishCheckElement, NumberLiteralElement, ObjectLiteralElement, ParameterAssignElement, ParameterElement, ParameterGroupElement, RestParameterElement, ReturnElement, SequenceElement, SpreadElement, StatementElement, StaticGroupElement, StaticInitializerElement, StringLiteralElement, SuperElement, TernaryOperatorElement, ThisElement, ThrowElement, TryBlockElement, TryElement, TupleElement, UniaryOperatorElement, UpdateElement, VarElement, WhileElement} = import('.element');
 
-public function convertASTIR(ast:Object, options:StringMap):GlobalElement {
+public function convertASTIR(ast:Object):GlobalElement {
     assrt(ast, Syntax.Program);
-    var ra = Range.fromAST(ast);
+    var ra = rangeFromAST(ast);
     var ir = new GlobalElement(ra);
-    if(options === null) {
-        options = new StringMap();
-    }
-    ir.enableImplicitBooleanConversion = options.get('enableImplicitBooleanConversion', false);
-    ir.enableTupleSubscription = options.get('enableTupleSubscription', false);
     convTop(ir, ast);
     return ir;
 }
@@ -21,7 +23,7 @@ public function convertASTIR(ast:Object, options:StringMap):GlobalElement {
 function convLiteral(p:Element, o:Object):void {
     var v = o.value;
     var r = o.raw;
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var el;
     if(v === null) {
         el = new NullLiteralElement(ra);
@@ -39,7 +41,7 @@ function convLiteral(p:Element, o:Object):void {
 
 function convImag(p:Element, o:Object):void {
     var r = o.raw;
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var el = new ComplexLiteralElement(r, ra);
     p.append(el);
 }
@@ -70,7 +72,7 @@ function assrt2(o:Object, type:*):void {
 
 function convThis(p:Element, o:Object):void {
     assrt(o, Syntax.ThisExpression);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     p.append(new ThisElement(ra));
 }
 
@@ -79,27 +81,32 @@ function ident(o):String {
     return o.name;
 }
 
+function createTag(o, TagClass, ...argv):String {
+    return new TagClass(ident(o), rangeFromAST(o), ...argv);
+}
+
 function convIdentAsStr(p:Element, o:Object):void {
     assrt(o, Syntax.Identifier);
     var n = ident(o);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var se = new StringLiteralElement(n, '"' + n + '"', ra);
     p.append(se);
 }
 
 function convAttr(o:Object):Attribute {
-    return new Attribute(ident(o), Range.fromAST(o));
+    return new Attribute(ident(o), rangeFromAST(o));
 }
 
 function convVar(p:Element, o:Object, decl:Boolean = false):void {
     assrt(o, Syntax.Identifier);
-    var ra = Range.fromAST(o);
-    p.append(new VarElement(ident(o), decl, ra));
+    var ra = rangeFromAST(o);
+    // TODO replace VarReference if decl
+    p.append(new VarElement(new VarReference(ident(o), ra), decl));
 }
 
 function convMember(p:Element, o:Object):void {
     assrt(o, Syntax.MemberExpression);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var oo = o.object;
     var po = o.property;
     var cm = o.computed;
@@ -118,16 +125,16 @@ function convMember(p:Element, o:Object):void {
 
 function convSuper(p:Element, o:Object):void {
     assrt(o, Syntax.Super);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     p.append(new SuperElement(ra));
 }
 
 function convArgs(tus:SequenceElement, pra:Range, args):void {
     (new ArrayList(args)).forEach(function(ie, k, a) {
         if(ie === null) {
-            throw new CompileError('Empty slot is not allowed', pra);
+            CAS.error(pra, 'Empty slot is not allowed');
         }
-        var ra = Range.fromAST(ie);
+        var ra = rangeFromAST(ie);
         if(ie.type === Syntax.SpreadElement) {
             var iee = new SpreadElement(ra);
             tus.append(iee);
@@ -140,9 +147,9 @@ function convArgs(tus:SequenceElement, pra:Range, args):void {
 
 function convDotAtCall(p:Element, o:Object):void {
     assrt2(o, [Syntax.CallExpression, Syntax.NewExpression]);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     if(o.type === Syntax.NewExpression) {
-        throw new CompileError('at-function can only be callee', ra);
+        CAS.error(ra, 'at-function can only be callee');
     }
     var ce = o.callee;
     assrt(ce, Syntax.DotAtExpression);
@@ -161,14 +168,14 @@ function convDotAtCall(p:Element, o:Object):void {
 
 function convImport(p:Element, o:Object):void {
     assrt(o, Syntax.Import);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var cs = new ImportElement(ra);
     p.append(cs);
 }
 
 function convCall(p:Element, o:Object):void {
     assrt2(o, [Syntax.CallExpression, Syntax.NewExpression]);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var argv = o.arguments;
     var ce = o.callee;
     if(ce.type === Syntax.DotAtExpression) {
@@ -187,7 +194,7 @@ function convCall(p:Element, o:Object):void {
 
 function convArray(p:Element, o:Object):void {
     assrt(o, Syntax.ArrayExpression);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var ce = o.elements;
     var cs = new ArrayElement(ra);
     p.append(cs);
@@ -196,7 +203,7 @@ function convArray(p:Element, o:Object):void {
 
 function convObject(p:Element, o:Object):void {
     assrt(o, Syntax.ObjectExpression);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var ce = o.properties;
     var cs = new ObjectLiteralElement(ra);
     p.append(cs);
@@ -205,12 +212,12 @@ function convObject(p:Element, o:Object):void {
         var ke = ie.key;
         var ve = ie.value;
         var ki = ie.kind;
-        var rra = Range.fromAST(ie);
+        var rra = rangeFromAST(ie);
         if(ve === null) {
             throw new InternalError('null value dict init', ie);
         }
         if(ki !== 'init') {
-            throw new CompileError('accessor or method in object expression is not allowed', rra);
+            CAS.error(rra, 'Accessor or method in object expression is not allowed.');
         }
         var kve = new KeyValueElement(rra);
         cs.append(kve);
@@ -228,7 +235,7 @@ function convObject(p:Element, o:Object):void {
 
 function convUnary(p:Element, o:Object):void {
     assrt(o, Syntax.UnaryExpression);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var op = o.operator;
     var ar = o.argument;
     var ee = new UniaryOperatorElement(op, ra);
@@ -238,7 +245,7 @@ function convUnary(p:Element, o:Object):void {
 
 function convBinary(p:Element, o:Object):void {
     assrt(o, Syntax.BinaryExpression);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var op = o.operator;
     var ee = new BinaryOperatorElement(op, ra);
     p.append(ee);
@@ -248,7 +255,7 @@ function convBinary(p:Element, o:Object):void {
 
 function convBinaryLogic(p:Element, o:Object):void {
     assrt(o, Syntax.LogicalExpression);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var op = o.operator;
     var ee = new BinaryLogicalElement(op, ra);
     p.append(ee);
@@ -258,7 +265,7 @@ function convBinaryLogic(p:Element, o:Object):void {
 
 function convUpdate(p:Element, o:Object):void {
     assrt(o, Syntax.UpdateExpression);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var op = o.operator;
     var ar = o.argument;
     var ee = new UpdateElement(op, o.prefix, ra);
@@ -268,7 +275,7 @@ function convUpdate(p:Element, o:Object):void {
 
 function convCond(p:Element, o:Object):void {
     assrt(o, Syntax.ConditionalExpression);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var ee = new TernaryOperatorElement(ra);
     p.append(ee);
     convExpr(ee, o.test);
@@ -278,8 +285,8 @@ function convCond(p:Element, o:Object):void {
 
 function makeError(msg:String) {
     return function (p:Element, o:Object):void {
-        var ra = Range.fromAST(o);
-        throw new CompileError(msg, ra);
+        var ra = rangeFromAST(o);
+        CAS.error(ra, msg);
     }
 }
 
@@ -322,11 +329,11 @@ function convExpr(p:Element, o:Object):void {
 }
 
 function convExprAllowTuple(p:Element, o:Object):void {
-    if(o.type != Syntax.SequenceExpression || !p.theGlobal.enableTupleSubscription) {
+    if(o.type != Syntax.SequenceExpression || !options.enableTupleSubscription) {
         convExpr(p, o);
         return;
     }
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var ce = o.expressions;
     var cs = new TupleElement(ra);
     p.append(cs);
@@ -336,7 +343,7 @@ function convExprAllowTuple(p:Element, o:Object):void {
 function convExprStat(p:Element, o:Object):void {
     assrt(o, Syntax.ExpressionStatement);
     var ie = o.expression;
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     if(ie.type === Syntax.UnaryExpression && ie.operator === 'delete') {
         convDelete(p, ie);
     } else if(ie.type === Syntax.AssignmentExpression) {
@@ -350,7 +357,7 @@ function convExprStat(p:Element, o:Object):void {
 
 function convDelete(p:Element, o:Object):void {
     assrt(o, Syntax.UnaryExpression);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var ee = new DeleteElement(ra);
     var ar = o.argument;
     p.append(ee);
@@ -359,7 +366,7 @@ function convDelete(p:Element, o:Object):void {
 
 function convAssign(p:Element, ra:Range, l:Object, r:Object, op:String):void {
     if(l.type === Syntax.ArrayPattern) {
-        throw new CompileError('destructing to array pattern is not supported yet', ra);
+        CAS.error(ra, 'Destructing to array pattern is not supported yet.');
     }
     var ee;
     if(l.type !== Syntax.ObjectPattern) {
@@ -379,9 +386,9 @@ function convAssign(p:Element, ra:Range, l:Object, r:Object, op:String):void {
 }
 
 function convPattern(p:Element, o:Object, decl:Boolean):void {
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     if(o.type === Syntax.ArrayPattern) {
-        throw new CompileError('destructuring to array pattern is not supported yet', ra);
+        CAS.error(ra, 'Destructuring to array pattern is not supported yet.');
     } else if(o.type === Syntax.ObjectPattern) {
         convObjPattern(p, o, decl);
     } else {
@@ -391,7 +398,7 @@ function convPattern(p:Element, o:Object, decl:Boolean):void {
 
 function convObjPattern(p:Element, o:Object, decl:Boolean):void {
     assrt(o, Syntax.ObjectPattern);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var ce = o.properties;
     var ee = new DestructObjectElement(decl, ra);
     p.append(ee);
@@ -401,7 +408,7 @@ function convObjPattern(p:Element, o:Object, decl:Boolean):void {
         var ko = ie.key;
         var vo = ie.value;
         var ki = ie.kind;
-        var rra = Range.fromAST(ie);
+        var rra = rangeFromAST(ie);
         if(vo === null) {
             throw new InternalError('null value object pattern', ie);
         }
@@ -413,7 +420,7 @@ function convObjPattern(p:Element, o:Object, decl:Boolean):void {
         ee.append(kve);
 
         if(vo.type === Syntax.AssignmentPattern) {
-            throw new CompileError('default value is not allowed in destructuring object', rra);
+            CAS.error(rra, 'Default value is not allowed in destructuring object.');
         } else if(vo.type === Syntax.ArrayPattern || vo.type === Syntax.ObjectPattern) {
             convPattern(kve, vo, decl);
         } else if(decl) {
@@ -424,27 +431,28 @@ function convObjPattern(p:Element, o:Object, decl:Boolean):void {
     });
 
     if(!has) {
-        throw new CompileError('empty destructuring target is not allowed', ra);
+        CAS.error(ra, 'Empty destructuring target is not allowed.');
     }
 }
 
 function convVarDecl(p:Element, o:Object):void {
     assrt(o, Syntax.VariableDeclaration);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var ki = o.kind;
     if(ki !== 'var') {
-        throw new CompileError(ki + ' declaration is not allowed', ra);
+        CAS.error(ra, '%s declaration is not allowed', ki);
     }
     (new ArrayList(o.declarations)).forEach(function(oi, k, a) {
         assrt(oi, Syntax.VariableDeclarator);
-        var rra = Range.fromAST(oi);
+        var rra = rangeFromAST(oi);
         var l = oi.id;
         var r = oi.init;
         var ee;
         if(r === null) {
-            ee = new VarDeclaratorElement(rra);
+            ee = new ExpressionStatementElement(rra);
             p.append(ee);
-            ee.append(new VarElement(ident(l), true, rra));
+            // TODO replace VarReference if decl
+            ee.append(new VarElement(new VarReference(ident(l), rra), true));
         } else if (l.type === Syntax.Identifier) {
             ee = new AssignElement(rra);
             p.append(ee);
@@ -469,7 +477,7 @@ function convStatOrBlock(p:Element, o:Object, BodyClass:Class):void {
     if(o === null) {
         assrt(o, Syntax.BlockStatement);
     }
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var be = new BodyClass(ra);
     p.append(be);
     if(o.type === Syntax.BlockStatement) {
@@ -480,7 +488,7 @@ function convStatOrBlock(p:Element, o:Object, BodyClass:Class):void {
 }
 
 function convCondExpr(p:Element, o:Object):void {
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var ee = new ConditionElement(ra);
     p.append(ee);
     convExpr(ee, o);
@@ -488,7 +496,7 @@ function convCondExpr(p:Element, o:Object):void {
 
 function convWhile(p:Element, o:Object):void {
     assrt(o, Syntax.WhileStatement);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var we = new WhileElement(ra);
     p.append(we);
     convCondExpr(we, o.test);
@@ -499,7 +507,7 @@ function convElse(p:Element, o:Object):void {
     if(o === null) {
         return
     }
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     if(o.type === Syntax.IfStatement) {
         var elife = new ElifElement(ra);
         p.append(elife);
@@ -513,7 +521,7 @@ function convElse(p:Element, o:Object):void {
 
 function convIf(p:Element, o:Object):void {
     assrt(o, Syntax.IfStatement);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var ee = new IfBlockElement(ra);
     p.append(ee);
     var ie = new IfElement(ra);
@@ -525,7 +533,7 @@ function convIf(p:Element, o:Object):void {
 
 function convReturn(p:Element, o:Object):void {
     assrt(o, Syntax.ReturnStatement);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var re = new ReturnElement(ra);
     p.append(re);
     var a = o.argument;
@@ -536,7 +544,7 @@ function convReturn(p:Element, o:Object):void {
 
 function convThrow(p:Element, o:Object):void {
     assrt(o, Syntax.ThrowStatement);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var throw_ = new ThrowElement(ra);
     p.append(throw_);
     convExpr(throw_, o.argument);
@@ -544,26 +552,26 @@ function convThrow(p:Element, o:Object):void {
 
 function convBreak(p:Element, o:Object):void {
     assrt(o, Syntax.BreakStatement);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     if(o.label !== null) {
-        throw new CompileError('labeled break is not implemented yet', ra);
+        CAS.error(ra, 'labeled break is not implemented yet.');
     }
     p.append(new BreakElement(ra));
 }
 
 function convCont(p:Element, o:Object):void {
     assrt(o, Syntax.ContinueStatement);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     if(o.label !== null) {
-        throw new CompileError('labeled continue is not implemented yet', ra);
+        CAS.error(ra, 'labeled continue is not implemented yet.');
     }
     p.append(new ContinueElement(ra));
 }
 
 function convParam(p:Element, o:Object):void {
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     if(o.type !== Syntax.Identifier) {
-        throw new CompileError('destructuring parameter is not supported yet', ra);
+        CAS.error(ra, 'Destructuring parameter is not supported yet');
     }
     var ee = new ParameterElement(ident(o), ra);
     p.append(ee);
@@ -571,7 +579,7 @@ function convParam(p:Element, o:Object):void {
 
 function convCatch(tcf:Element, o:Object):void {
     assrt(o, Syntax.CatchClause);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var een = o.param !== null;
     var catch_ = new CatchElement(ra);
     tcf.append(catch_);
@@ -583,7 +591,7 @@ function convCatch(tcf:Element, o:Object):void {
 
 function convTry(p:Element, o:Object):void {
     assrt(o, Syntax.TryStatement);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var tcf = new TryBlockElement(ra);
     p.append(tcf);
     convStatOrBlock(tcf, o.block, TryElement);
@@ -623,27 +631,24 @@ function convFuncDecl(pfn:BaseFunctionElement, o:Object, pub:Boolean):void {
     if(o.expression) {
         throw new InternalError('Unexcepted function with single expression', o);
     }
-    var ra = Range.fromAST(o);
-    var ria = Range.fromAST(o.id);
-    var fn = new FunctionDefinitionElement(ident(o.id), pub, ria, ra);
+    var ra = rangeFromAST(o);
+    var fn = new FunctionDefinitionElement(createTag(o.id, FunctionTag), pub, ra);
     pfn.functionDefinitions.append(fn);
     convFuncInner(fn, o);
 }
 
 function convFuncExpr(p:Element, o:Object):void {
     assrt(o, Syntax.FunctionExpression);
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     var name = o.id;
-    // put the actual function into declaration area
-    var fn = new FunctionExpressionElement(
-        name === null ? null : ident(name),
-        name === null ? null : Range.fromAST(name),
+    var fnc = new FunctionExpressionContainerElement(
+        name === null ? new FunctionExpTag() : createTag(name, FunctionExpTag),
         ra
     );
-    p.theFunction.functionDefinitions.append(fn);
+    var fn = fnc.functionBody;
+    // put the expression in-place at first, will be hoisted in declareVariable
+    p.append(fnc);
     convFuncInner(fn, o);
-    // put the function tag here
-    p.append(VarElement.getFunctionExp(fn.tag));
 }
 
 function convFuncInnerDecl(fn:BaseFunctionElement, o:Object):void {
@@ -655,22 +660,22 @@ function convFuncInnerDecl(fn:BaseFunctionElement, o:Object):void {
 }
 
 function convFuncInner(fn:FunctionElement, o:Object):void {
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     if(o.isAsync) {
-        throw new CompileError('async function is not supported yet', ra);
+        CAS.error(ra, 'async function is not supported yet');
     }
     if(o.generator) {
-        throw new CompileError('generator function is not supported yet', ra);
+        CAS.error(ra, 'generator function is not supported yet');
     }
 
     var pe = fn.parameters;
     var opt = false;
     (new ArrayList(o.params)).forEach(function(p, k, v) {
-        var rra = Range.fromAST(o);
+        var rra = rangeFromAST(o);
         var ie;
         if(p.type === Syntax.Identifier || p.type === Syntax.ArrayPattern || p.type === Syntax.ObjectPattern) {
             if(opt) {
-                throw new CompileError('optional parameter may be placed only after required parameter', rra);
+                CAS.error(rra, 'optional parameter may be placed only after required parameter');
             }
             convParam(pe, p);
         } else if(p.type === Syntax.AssignmentPattern) {
@@ -692,7 +697,7 @@ function convFuncInner(fn:FunctionElement, o:Object):void {
     var body = fn.body;
     var expr = o.expression;
     if(expr) {
-        var rra = Range.fromAST(o.body);
+        var rra = rangeFromAST(o.body);
         var re = new ReturnElement(rra);
         body.append(re);
         convExpr(re, o.body);
@@ -706,10 +711,9 @@ function convFuncInner(fn:FunctionElement, o:Object):void {
 
 function convClassDecl(g:GlobalElement, oc:Object, pub:Boolean):void {
     assrt(oc, Syntax.ClassDeclaration);
-    var ra = Range.fromAST(oc);
-    var ria = Range.fromAST(oc.id);
+    var ra = rangeFromAST(oc);
     var su = oc.superClass;
-    var ce:ClassElement = new ClassElement(ident(oc.id), su !== null, pub, ria, ra);
+    var ce:ClassElement = new ClassElement(createTag(oc.id, ClassTag), su !== null, pub, ra);
     g.classDefinitions.append(ce);
     var cinit = ce.createClassInitElement();
     g.body.append(cinit);
@@ -719,8 +723,8 @@ function convClassDecl(g:GlobalElement, oc:Object, pub:Boolean):void {
     var bo = oc.body;
     assrt(bo, Syntax.ClassBody);
     (new ArrayList(bo.body)).forEach(function(oi, k, a) {
-        var ra = Range.fromAST(oi);
-        var p, s, ira = Range.fromAST(oi);
+        var ra = rangeFromAST(oi);
+        var p, s, ira = rangeFromAST(oi);
         if(oi.accessModifier === 'public') {
             p = true;
         } else if(oi.accessModifier === 'private') {
@@ -734,7 +738,7 @@ function convClassDecl(g:GlobalElement, oc:Object, pub:Boolean):void {
             assrt(od, Syntax.VariableDeclaration);
             (new ArrayList(od.declarations)).forEach(function(ov, k, a) {
                 assrt(ov, Syntax.VariableDeclarator);
-                var rii = Range.fromAST(ov);
+                var rii = rangeFromAST(ov);
                 var ido = ov.id;
                 var ino = ov.init;
                 var ie = new (s ? StaticInitializerElement : InstanceInitializerElement)(convAttr(ido), p, rii);
@@ -746,8 +750,7 @@ function convClassDecl(g:GlobalElement, oc:Object, pub:Boolean):void {
             });
         } else if(oi.type === Syntax.MethodDeclaration) {
             assrt(od, Syntax.FunctionDeclaration);
-            var ria = Range.fromAST(od.id);
-            var me = new MethodElement(ident(od.id), oi.kind, s, p, ria, ra);
+            var me = new MethodElement(createTag(od.id, MethodTag, oi.kind, s, p), ra);
             ce.functionDefinitions.append(me);
             convFuncInner(me, od);
         } else {
@@ -757,7 +760,7 @@ function convClassDecl(g:GlobalElement, oc:Object, pub:Boolean):void {
 }
 
 function convTopDecl(g:GlobalElement, o:Object, pub:Boolean, next:Function) {
-    var ra = Range.fromAST(o);
+    var ra = rangeFromAST(o);
     if(o.type === Syntax.FunctionDeclaration) {
         convFuncDecl(g, o, pub);
     } else if(o.type === Syntax.ClassDeclaration) {
@@ -780,3 +783,11 @@ function convTop(g:GlobalElement, o:Object):void {
     });
 }
 
+function rangeFromAST(o) {
+    var locs = o.loc;
+    var rg = o.range;
+    return new Range(
+        new Marker(rg[0], locs.start.line, locs.start.column),
+        new Marker(rg[1], locs.end.line, locs.end.column)
+    );
+}
